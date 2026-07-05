@@ -14,6 +14,7 @@ migrate_working_dir/
 
 # Opencode
 opencode.jsonc
+docs/superpowers
 
 # IntelliJ related
 *.iml
