@@ -7,7 +7,7 @@ import '../features/auth/presentation/screens/signup_screen.dart';
 import '../features/dashboard/presentation/screens/student_shell.dart';
 import '../features/dashboard/presentation/screens/dashboard_home.dart';
 import '../features/checklist/presentation/screens/checklist_screen.dart';
-import '../features/jobs/presentation/screens/jobs_placeholder.dart';
+import '../features/jobs/presentation/screens/jobs_screen.dart';
 import '../features/chatbot/presentation/screens/chat_placeholder.dart';
 import '../features/my_documents/presentation/screens/my_documents_placeholder.dart';
 import '../features/notifications/presentation/screens/notification_screen.dart';
@@ -72,7 +72,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/jobs',
                 name: 'jobs',
-                builder: (context, state) => const JobsPlaceholder(),
+                builder: (context, state) => const JobsScreen(),
               ),
             ],
           ),
