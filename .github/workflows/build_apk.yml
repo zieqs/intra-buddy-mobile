@@ -1,0 +1,37 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41'
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Generate code
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Create .env for build
+        run: |
+          echo "SUPABASE_URL=https://placeholder.supabase.co" >> .env
+          echo "SUPABASE_ANON_KEY=placeholder" >> .env
+
+      - name: Build APK
+        run: flutter build apk --debug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: intra-buddy-debug
+          path: build/app/outputs/flutter-apk/app-debug.apk
