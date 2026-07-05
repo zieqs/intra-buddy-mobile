@@ -5,6 +5,7 @@ import '../../data/datasources/document_remote_datasource.dart';
 import '../../data/repositories/document_repository_impl.dart';
 import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/providers/auth_state_provider.dart';
+import '../../../../core/providers/dashboard_refresh_provider.dart';
 
 final documentRepositoryProvider = Provider<DocumentRepository>((ref) {
   final authService = ref.watch(authServiceProvider);
@@ -38,10 +39,12 @@ class DocumentController extends AsyncNotifier<List<DocumentItem>> {
       itemName: itemName,
       notes: notes,
     );
-    result.fold(
-      (failure) => state = AsyncError(failure, StackTrace.current),
-      (_) => ref.invalidateSelf(),
-    );
+    result.fold((failure) => state = AsyncError(failure, StackTrace.current), (
+      _,
+    ) {
+      ref.invalidateSelf();
+      ref.read(dashboardRefreshProvider.notifier).trigger();
+    });
   }
 
   Future<String> getViewUrl(String storagePath) async {
@@ -53,9 +56,11 @@ class DocumentController extends AsyncNotifier<List<DocumentItem>> {
   Future<void> deleteDocument(int id, String storagePath) async {
     final repo = ref.read(documentRepositoryProvider);
     final result = await repo.deleteDocument(id, storagePath);
-    result.fold(
-      (failure) => state = AsyncError(failure, StackTrace.current),
-      (_) => ref.invalidateSelf(),
-    );
+    result.fold((failure) => state = AsyncError(failure, StackTrace.current), (
+      _,
+    ) {
+      ref.invalidateSelf();
+      ref.read(dashboardRefreshProvider.notifier).trigger();
+    });
   }
 }

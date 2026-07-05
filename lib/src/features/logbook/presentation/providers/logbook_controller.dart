@@ -5,6 +5,7 @@ import '../../data/datasources/logbook_remote_datasource.dart';
 import '../../data/repositories/logbook_repository_impl.dart';
 import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/providers/auth_state_provider.dart';
+import '../../../../core/providers/dashboard_refresh_provider.dart';
 
 final logbookRepositoryProvider = Provider<LogbookRepository>((ref) {
   final authService = ref.watch(authServiceProvider);
@@ -40,6 +41,7 @@ class LogbookController extends AsyncNotifier<List<LogbookWeek>> {
         );
       }
       await repo.toggleSubmitted(id, submitted);
+      ref.read(dashboardRefreshProvider.notifier).trigger();
       return current;
     });
   }

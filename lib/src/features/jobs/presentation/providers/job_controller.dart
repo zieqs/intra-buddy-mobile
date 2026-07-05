@@ -5,6 +5,7 @@ import '../../data/datasources/job_remote_datasource.dart';
 import '../../data/repositories/job_repository_impl.dart';
 import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/providers/auth_state_provider.dart';
+import '../../../../core/providers/dashboard_refresh_provider.dart';
 
 final jobRepositoryProvider = Provider<JobRepository>((ref) {
   final authService = ref.watch(authServiceProvider);
@@ -38,10 +39,12 @@ class JobController extends AsyncNotifier<List<JobApplication>> {
       status: status,
       notes: notes,
     );
-    result.fold(
-      (failure) => state = AsyncError(failure, StackTrace.current),
-      (_) => ref.invalidateSelf(),
-    );
+    result.fold((failure) => state = AsyncError(failure, StackTrace.current), (
+      _,
+    ) {
+      ref.invalidateSelf();
+      ref.read(dashboardRefreshProvider.notifier).trigger();
+    });
   }
 
   Future<void> updateApplication({
@@ -59,19 +62,23 @@ class JobController extends AsyncNotifier<List<JobApplication>> {
       status: status,
       notes: notes,
     );
-    result.fold(
-      (failure) => state = AsyncError(failure, StackTrace.current),
-      (_) => ref.invalidateSelf(),
-    );
+    result.fold((failure) => state = AsyncError(failure, StackTrace.current), (
+      _,
+    ) {
+      ref.invalidateSelf();
+      ref.read(dashboardRefreshProvider.notifier).trigger();
+    });
   }
 
   Future<void> deleteApplication(int id) async {
     final repo = ref.read(jobRepositoryProvider);
     final result = await repo.deleteApplication(id);
-    result.fold(
-      (failure) => state = AsyncError(failure, StackTrace.current),
-      (_) => ref.invalidateSelf(),
-    );
+    result.fold((failure) => state = AsyncError(failure, StackTrace.current), (
+      _,
+    ) {
+      ref.invalidateSelf();
+      ref.read(dashboardRefreshProvider.notifier).trigger();
+    });
   }
 }
 

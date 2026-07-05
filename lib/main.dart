@@ -21,9 +21,5 @@ void main() async {
 
   await Supabase.initialize(url: supabaseUrl, publishableKey: supabaseAnonKey);
 
-  runApp(
-    const ProviderScope(
-      child: IntraBuddyApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: IntraBuddyApp()));
 }

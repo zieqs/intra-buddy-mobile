@@ -5,6 +5,7 @@ import '../../data/datasources/checklist_remote_datasource.dart';
 import '../../data/repositories/checklist_repository_impl.dart';
 import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/providers/auth_state_provider.dart';
+import '../../../../core/providers/dashboard_refresh_provider.dart';
 
 final checklistRepositoryProvider = Provider<ChecklistRepository>((ref) {
   final authService = ref.watch(authServiceProvider);
@@ -45,6 +46,7 @@ class ChecklistController extends AsyncNotifier<List<ChecklistItem>> {
         );
       }
       await repo.toggleItem(checklistId, completed);
+      ref.read(dashboardRefreshProvider.notifier).trigger();
       return current;
     });
   }

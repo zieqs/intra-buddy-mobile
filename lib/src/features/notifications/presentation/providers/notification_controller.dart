@@ -5,6 +5,7 @@ import '../../data/datasources/notification_remote_datasource.dart';
 import '../../data/repositories/notification_repository_impl.dart';
 import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/providers/auth_state_provider.dart';
+import '../../../../core/providers/dashboard_refresh_provider.dart';
 
 final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
   final authService = ref.watch(authServiceProvider);
@@ -49,6 +50,7 @@ class NotificationController extends AsyncNotifier<List<AppNotification>> {
           return n;
         }).toList(),
       );
+      ref.read(dashboardRefreshProvider.notifier).trigger();
     });
   }
 
@@ -60,6 +62,7 @@ class NotificationController extends AsyncNotifier<List<AppNotification>> {
     ) {
       final current = state.value ?? [];
       state = AsyncData(current.where((n) => n.id != id).toList());
+      ref.read(dashboardRefreshProvider.notifier).trigger();
     });
   }
 }
