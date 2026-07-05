@@ -21,7 +21,7 @@ class StudentShell extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
       ),
       builder: (context) {
         return SafeArea(
@@ -61,14 +61,6 @@ class StudentShell extends ConsumerWidget {
                   onTap: () {
                     Navigator.pop(context);
                     context.push('/profile');
-                  },
-                ),
-                _MoreMenuItem(
-                  icon: Icons.notifications_outlined,
-                  label: 'Notifications',
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.push('/notifications');
                   },
                 ),
                 _MoreMenuItem(

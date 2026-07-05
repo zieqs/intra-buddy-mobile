@@ -104,7 +104,7 @@ class DashboardHome extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Card(
+                /*Card(
                   child: InkWell(
                     borderRadius: BorderRadius.circular(16),
                     onTap: () => context.push('/notifications'),
@@ -150,7 +150,7 @@ class DashboardHome extends ConsumerWidget {
                       ),
                     ),
                   ),
-                ),
+                ),*/
               ],
             ),
           ),
