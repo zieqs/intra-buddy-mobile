@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intra_buddy_mobile_v2/src/app/theme/app_colors.dart';
+import 'package:intra_buddy_mobile_v2/src/features/auth/presentation/providers/auth_controller.dart';
 
-class StudentShell extends StatelessWidget {
+class StudentShell extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
   const StudentShell({super.key, required this.navigationShell});
@@ -76,7 +78,7 @@ class StudentShell extends StatelessWidget {
                   isDestructive: true,
                   onTap: () {
                     Navigator.pop(context);
-                    context.go('/login');
+                    _signOut(context);
                   },
                 ),
               ],
@@ -87,8 +89,38 @@ class StudentShell extends StatelessWidget {
     );
   }
 
+  void _signOut(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final container = ProviderScope.containerOf(context);
+              await container.read(authControllerProvider.notifier).signOut();
+              if (context.mounted) {
+                context.go('/login');
+              }
+            },
+            child: const Text(
+              'Sign Out',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final currentBranch = navigationShell.currentIndex;
     final titles = ['Dashboard', 'Checklist', 'Jobs', 'Chat', 'Documents'];
 
