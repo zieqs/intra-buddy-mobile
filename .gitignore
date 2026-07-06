@@ -15,6 +15,7 @@ migrate_working_dir/
 # Opencode
 opencode.jsonc
 docs/superpowers
+.superpowers/
 
 # IntelliJ related
 *.iml
@@ -36,6 +37,9 @@ docs/superpowers
 .pub/
 /build/
 /coverage/
+
+# CocoaPods (in case pod install is run again)
+ios/Pods/
 
 # Environment
 .env
