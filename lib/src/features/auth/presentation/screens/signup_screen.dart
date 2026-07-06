@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/providers/auth_state_provider.dart';
 import '../../domain/entities/user.dart';
@@ -156,7 +157,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 return 'Please enter your student ID';
               }
               if (!authService.isValidStudentId(value)) {
-                return 'Student ID must be 11 digits';
+                return 'Student ID must be ${AppConstants.studentIdLength} digits';
               }
               return null;
             },
@@ -244,8 +245,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               if (value == null || value.isEmpty) {
                 return 'Please enter a password';
               }
-              if (value.length < 6) {
-                return 'Password must be at least 6 characters';
+              if (value.length < AppConstants.minPasswordLength) {
+                return 'Password must be at least ${AppConstants.minPasswordLength} characters';
               }
               return null;
             },
