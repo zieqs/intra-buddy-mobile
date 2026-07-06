@@ -4,6 +4,7 @@ import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../../../core/providers/auth_state_provider.dart';
 import '../../domain/entities/user.dart';
+import '../../../../core/errors/failures.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final authService = ref.watch(authServiceProvider);
@@ -25,12 +26,30 @@ class AuthController extends AsyncNotifier<User?> {
     return result.fold((_) => null, (user) => user);
   }
 
+  static String mapAuthError(String raw) {
+    if (raw.contains('already registered')) {
+      return 'An account with this email already exists. Try signing in.';
+    }
+    if (raw.contains('validate email')) {
+      return 'Please enter a valid @s.unikl.edu.my email';
+    }
+    if (raw.contains('connect') || raw.contains('network') || raw.contains('internet')) {
+      return 'Unable to connect. Please check your internet and try again.';
+    }
+    return 'Something went wrong. Please try again.';
+  }
+
   Future<void> signIn({required String email, required String password}) async {
     state = const AsyncLoading();
     final repo = ref.read(authRepositoryProvider);
     final result = await repo.signIn(email: email, password: password);
     result.fold(
-      (failure) => state = AsyncError(failure, StackTrace.current),
+      (failure) {
+        final message = failure is AuthFailure
+            ? AuthController.mapAuthError(failure.message)
+            : failure.message;
+        state = AsyncError(AuthFailure(message), StackTrace.current);
+      },
       (user) => state = AsyncData(user),
     );
   }
@@ -52,7 +71,12 @@ class AuthController extends AsyncNotifier<User?> {
       phone: phone,
     );
     result.fold(
-      (failure) => state = AsyncError(failure, StackTrace.current),
+      (failure) {
+        final message = failure is AuthFailure
+            ? AuthController.mapAuthError(failure.message)
+            : failure.message;
+        state = AsyncError(AuthFailure(message), StackTrace.current);
+      },
       (user) => state = AsyncData(user),
     );
   }
