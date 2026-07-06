@@ -123,10 +123,7 @@ class _ChecklistTile extends ConsumerWidget {
           ),
         ),
         subtitle: item.description != null
-            ? Text(
-                item.description!,
-                style: TextStyle(color: context.muted),
-              )
+            ? Text(item.description!, style: TextStyle(color: context.muted))
             : null,
         activeColor: AppColors.secondary,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

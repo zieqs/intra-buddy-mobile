@@ -86,9 +86,9 @@ class LogbookScreen extends ConsumerWidget {
                       const SizedBox(height: 8),
                       Text(
                         '$submitted / ${weeks.length} weeks submitted',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: context.muted,
-                        ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(color: context.muted),
                       ),
                     ],
                   ),
@@ -122,7 +122,7 @@ class _WeekCard extends ConsumerWidget {
               ? const Icon(Icons.check, color: Colors.white)
               : Text(
                   'W${week.weekNumber}',
-                  style:                   TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: context.muted,
                   ),

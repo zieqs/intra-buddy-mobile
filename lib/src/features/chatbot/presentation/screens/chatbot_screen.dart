@@ -49,7 +49,9 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
     if (_currentSessionId != null &&
         !_sessionsWithActivity.contains(_currentSessionId)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Send a message first to start a new session')),
+        const SnackBar(
+          content: Text('Send a message first to start a new session'),
+        ),
       );
       return;
     }
@@ -211,11 +213,7 @@ class _MessageList extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.chat_outlined,
-                  size: 64,
-                  color: context.muted,
-                ),
+                Icon(Icons.chat_outlined, size: 64, color: context.muted),
                 const SizedBox(height: 16),
                 Text(
                   'How can I help you?',
@@ -268,7 +266,11 @@ class _MessageBubble extends StatelessWidget {
             CircleAvatar(
               radius: 16,
               backgroundColor: context.primaryContainer,
-              child: const Icon(Icons.smart_toy, size: 18, color: AppColors.primary),
+              child: const Icon(
+                Icons.smart_toy,
+                size: 18,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(width: 8),
           ],
@@ -349,9 +351,9 @@ class _SessionDrawer extends ConsumerWidget {
                     return Center(
                       child: Text(
                         'No sessions yet',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: context.muted,
-                        ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(color: context.muted),
                       ),
                     );
                   }
@@ -378,7 +380,9 @@ class _SessionDrawer extends ConsumerWidget {
                               context: context,
                               builder: (ctx) => AlertDialog(
                                 title: const Text('Delete Session'),
-                                content: const Text('Are you sure you want to delete this chat session?'),
+                                content: const Text(
+                                  'Are you sure you want to delete this chat session?',
+                                ),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(ctx),
@@ -389,7 +393,10 @@ class _SessionDrawer extends ConsumerWidget {
                                       Navigator.pop(ctx);
                                       onDeleteSession(session.id);
                                     },
-                                    child: const Text('Delete', style: TextStyle(color: AppColors.error)),
+                                    child: const Text(
+                                      'Delete',
+                                      style: TextStyle(color: AppColors.error),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -407,5 +414,4 @@ class _SessionDrawer extends ConsumerWidget {
       ),
     );
   }
-
 }

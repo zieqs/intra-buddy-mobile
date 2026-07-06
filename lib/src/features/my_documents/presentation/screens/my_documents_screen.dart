@@ -15,9 +15,7 @@ class MyDocumentsScreen extends ConsumerWidget {
     final docsState = ref.watch(documentControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Documents'),
-      ),
+      appBar: AppBar(title: const Text('My Documents')),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showUploadOptions(context, ref),
         backgroundColor: AppColors.secondary,
@@ -49,11 +47,7 @@ class MyDocumentsScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.folder_outlined,
-                    size: 64,
-                    color: context.muted,
-                  ),
+                  Icon(Icons.folder_outlined, size: 64, color: context.muted),
                   const SizedBox(height: 16),
                   Text(
                     'No documents yet',

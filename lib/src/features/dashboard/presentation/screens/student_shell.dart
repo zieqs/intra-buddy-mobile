@@ -138,42 +138,42 @@ class StudentShell extends ConsumerWidget {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(top: 8.0),
         child: NavigationBar(
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-        selectedIndex: currentBranch < 4 ? currentBranch : 0,
-        onDestinationSelected: (index) => _onTap(context, index),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: '',
-            //label: 'Dashboard',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.checklist_outlined),
-            selectedIcon: Icon(Icons.checklist),
-            label: '',
-            //label: 'Checklist',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.work_outline),
-            selectedIcon: Icon(Icons.work),
-            label: '',
-            //label: 'Jobs',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.chat_outlined),
-            selectedIcon: Icon(Icons.chat),
-            label: '',
-            //label: 'Chat',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_2_outlined),
-            selectedIcon: Icon(Icons.person_2),
-            label: '',
-            //label: 'More',
-          ),
-        ],
-      ),
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+          selectedIndex: currentBranch < 4 ? currentBranch : 0,
+          onDestinationSelected: (index) => _onTap(context, index),
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home),
+              label: '',
+              //label: 'Dashboard',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.checklist_outlined),
+              selectedIcon: Icon(Icons.checklist),
+              label: '',
+              //label: 'Checklist',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.work_outline),
+              selectedIcon: Icon(Icons.work),
+              label: '',
+              //label: 'Jobs',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.chat_outlined),
+              selectedIcon: Icon(Icons.chat),
+              label: '',
+              //label: 'Chat',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_2_outlined),
+              selectedIcon: Icon(Icons.person_2),
+              label: '',
+              //label: 'More',
+            ),
+          ],
+        ),
       ),
     );
   }

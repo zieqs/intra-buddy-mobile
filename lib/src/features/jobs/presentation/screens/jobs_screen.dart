@@ -43,11 +43,7 @@ class JobsScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.work_outlined,
-                    size: 64,
-                    color: context.muted,
-                  ),
+                  Icon(Icons.work_outlined, size: 64, color: context.muted),
                   const SizedBox(height: 16),
                   Text(
                     'No applications yet',

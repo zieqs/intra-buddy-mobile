@@ -52,18 +52,39 @@ extension ThemeColor on BuildContext {
 
   Brightness get brightness => Theme.of(this).brightness;
 
-  Color get background => _resolve(AppColors.lightBackground, AppColors.darkBackground);
-  Color get onBackground => _resolve(AppColors.lightOnBackground, AppColors.darkOnBackground);
+  Color get background =>
+      _resolve(AppColors.lightBackground, AppColors.darkBackground);
+  Color get onBackground =>
+      _resolve(AppColors.lightOnBackground, AppColors.darkOnBackground);
   Color get surface => _resolve(AppColors.lightSurface, AppColors.darkSurface);
-  Color get onSurface => _resolve(AppColors.lightOnSurface, AppColors.darkOnSurface);
+  Color get onSurface =>
+      _resolve(AppColors.lightOnSurface, AppColors.darkOnSurface);
   Color get outline => _resolve(AppColors.lightOutline, AppColors.darkOutline);
   Color get muted => _resolve(AppColors.lightMuted, AppColors.darkMuted);
-  Color get primaryContainer => _resolve(AppColors.lightPrimaryContainer, AppColors.darkPrimaryContainer);
-  Color get onPrimaryContainer => _resolve(AppColors.lightOnPrimaryContainer, AppColors.darkOnPrimaryContainer);
-  Color get secondaryContainer => _resolve(AppColors.lightSecondaryContainer, AppColors.darkSecondaryContainer);
-  Color get onSecondaryContainer => _resolve(AppColors.lightOnSecondaryContainer, AppColors.darkOnSecondaryContainer);
-  Color get tertiaryContainer => _resolve(AppColors.lightTertiaryContainer, AppColors.darkTertiaryContainer);
-  Color get onTertiaryContainer => _resolve(AppColors.lightOnTertiaryContainer, AppColors.darkOnTertiaryContainer);
-  Color get errorContainer => _resolve(AppColors.lightErrorContainer, AppColors.darkErrorContainer);
-  Color get onErrorContainer => _resolve(AppColors.lightOnErrorContainer, AppColors.darkOnErrorContainer);
+  Color get primaryContainer =>
+      _resolve(AppColors.lightPrimaryContainer, AppColors.darkPrimaryContainer);
+  Color get onPrimaryContainer => _resolve(
+    AppColors.lightOnPrimaryContainer,
+    AppColors.darkOnPrimaryContainer,
+  );
+  Color get secondaryContainer => _resolve(
+    AppColors.lightSecondaryContainer,
+    AppColors.darkSecondaryContainer,
+  );
+  Color get onSecondaryContainer => _resolve(
+    AppColors.lightOnSecondaryContainer,
+    AppColors.darkOnSecondaryContainer,
+  );
+  Color get tertiaryContainer => _resolve(
+    AppColors.lightTertiaryContainer,
+    AppColors.darkTertiaryContainer,
+  );
+  Color get onTertiaryContainer => _resolve(
+    AppColors.lightOnTertiaryContainer,
+    AppColors.darkOnTertiaryContainer,
+  );
+  Color get errorContainer =>
+      _resolve(AppColors.lightErrorContainer, AppColors.darkErrorContainer);
+  Color get onErrorContainer =>
+      _resolve(AppColors.lightOnErrorContainer, AppColors.darkOnErrorContainer);
 }

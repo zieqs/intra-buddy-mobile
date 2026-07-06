@@ -18,7 +18,10 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.info_outline, color: AppColors.primary),
+                  leading: const Icon(
+                    Icons.info_outline,
+                    color: AppColors.primary,
+                  ),
                   title: const Text('App Version'),
                   trailing: Text(
                     '0.1.0+1',
