@@ -89,13 +89,14 @@ class AppTheme {
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
+        height: 50,
         indicatorColor: AppColors.primaryContainer,
         backgroundColor: AppColors.surface,
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: AppColors.primary);
+            return const IconThemeData(color: AppColors.primary, size: 20);
           }
-          return const IconThemeData(color: AppColors.muted);
+          return const IconThemeData(color: AppColors.muted, size: 20);
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {

@@ -41,7 +41,7 @@ class StudentShell extends ConsumerWidget {
                 ),
                 _MoreMenuItem(
                   icon: Icons.assignment_outlined,
-                  label: 'Weekly Logbook',
+                  label: 'Logbook Status',
                   onTap: () {
                     Navigator.pop(context);
                     context.push('/logbook');
@@ -135,7 +135,10 @@ class StudentShell extends ConsumerWidget {
         ],
       ),
       body: navigationShell,
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(top: 8.0),
+        child: NavigationBar(
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
         selectedIndex: currentBranch < 4 ? currentBranch : 0,
         onDestinationSelected: (index) => _onTap(context, index),
         destinations: const [
@@ -170,6 +173,7 @@ class StudentShell extends ConsumerWidget {
             //label: 'More',
           ),
         ],
+      ),
       ),
     );
   }

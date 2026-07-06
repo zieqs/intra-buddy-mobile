@@ -15,6 +15,9 @@ class MyDocumentsScreen extends ConsumerWidget {
     final docsState = ref.watch(documentControllerProvider);
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('My Documents'),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showUploadOptions(context, ref),
         backgroundColor: AppColors.secondary,
