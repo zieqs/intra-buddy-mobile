@@ -4,11 +4,36 @@ import '../../../../app/theme/app_colors.dart';
 import '../../domain/entities/logbook_week.dart';
 import '../providers/logbook_controller.dart';
 
-class LogbookScreen extends ConsumerWidget {
+class LogbookScreen extends ConsumerStatefulWidget {
   const LogbookScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LogbookScreen> createState() => _LogbookScreenState();
+}
+
+class _LogbookScreenState extends ConsumerState<LogbookScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(logbookControllerProvider);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final logbookState = ref.watch(logbookControllerProvider);
 
     return Scaffold(
@@ -56,47 +81,52 @@ class LogbookScreen extends ConsumerWidget {
 
           final submitted = weeks.where((w) => w.isSubmitted).length;
 
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Submission Progress',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 12),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: LinearProgressIndicator(
-                          value: weeks.isEmpty ? 0 : submitted / weeks.length,
-                          minHeight: 8,
-                          backgroundColor: context.outline,
-                          valueColor: AlwaysStoppedAnimation(
-                            submitted == weeks.length
-                                ? AppColors.secondary
-                                : AppColors.primary,
+          return RefreshIndicator(
+            onRefresh: () => ref.refresh(logbookControllerProvider.future),
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Submission Progress',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 12),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: LinearProgressIndicator(
+                            value: weeks.isEmpty ? 0 : submitted / weeks.length,
+                            minHeight: 8,
+                            backgroundColor: context.outline,
+                            valueColor: AlwaysStoppedAnimation(
+                              submitted == weeks.length
+                                  ? AppColors.secondary
+                                  : AppColors.primary,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '$submitted / ${weeks.length} weeks submitted',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium?.copyWith(color: context.muted),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Text(
+                          '$submitted / ${weeks.length} weeks submitted',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(
+                            color: context.muted,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              ...weeks.map((week) => _WeekCard(week: week)),
-            ],
+                const SizedBox(height: 16),
+                ...weeks.map((week) => _WeekCard(week: week)),
+              ],
+            ),
           );
         },
       ),

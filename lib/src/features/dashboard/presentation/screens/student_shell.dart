@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intra_buddy_mobile_v2/src/app/theme/app_colors.dart';
+import 'package:intra_buddy_mobile_v2/src/core/providers/tab_index_provider.dart';
 import 'package:intra_buddy_mobile_v2/src/features/auth/presentation/providers/auth_controller.dart';
 
 class StudentShell extends ConsumerWidget {
@@ -122,6 +123,12 @@ class StudentShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentBranch = navigationShell.currentIndex;
+    final tabNotifier = ref.read(currentTabIndexProvider.notifier);
+    if (tabNotifier.currentValue != currentBranch) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        tabNotifier.setIndex(currentBranch);
+      });
+    }
     final titles = ['Dashboard', 'Checklist', 'Jobs', 'INTRA Assistant'];
 
     return Scaffold(

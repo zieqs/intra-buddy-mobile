@@ -6,6 +6,7 @@ import '../../data/repositories/checklist_repository_impl.dart';
 import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/providers/auth_state_provider.dart';
 import '../../../../core/providers/dashboard_refresh_provider.dart';
+import '../../../../core/providers/tab_index_provider.dart';
 
 final checklistRepositoryProvider = Provider<ChecklistRepository>((ref) {
   final authService = ref.watch(authServiceProvider);
@@ -23,6 +24,7 @@ final checklistControllerProvider =
 class ChecklistController extends AsyncNotifier<List<ChecklistItem>> {
   @override
   Future<List<ChecklistItem>> build() async {
+    ref.watch(currentTabIndexProvider);
     final repo = ref.watch(checklistRepositoryProvider);
     final result = await repo.loadChecklist();
     return result.fold((failure) => throw failure, (items) => items);

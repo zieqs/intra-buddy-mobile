@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/providers/auth_state_provider.dart';
 import '../../../../core/providers/dashboard_refresh_provider.dart';
+import '../../../../core/providers/tab_index_provider.dart';
 
 class DashboardData {
   final int totalMilestones;
@@ -25,7 +26,7 @@ class DashboardData {
 
 final dashboardProvider = FutureProvider<DashboardData>((ref) async {
   ref.watch(dashboardRefreshProvider);
-  // ... rest unchanged
+  ref.watch(currentTabIndexProvider);
   final supabase = ref.watch(supabaseClientProvider);
   final authService = ref.watch(authServiceProvider);
   final userId = authService.currentUser?.id;

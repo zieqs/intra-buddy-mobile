@@ -4,11 +4,36 @@ import '../../../../app/theme/app_colors.dart';
 import '../../domain/entities/checklist_item.dart';
 import '../providers/checklist_controller.dart';
 
-class ChecklistScreen extends ConsumerWidget {
+class ChecklistScreen extends ConsumerStatefulWidget {
   const ChecklistScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ChecklistScreen> createState() => _ChecklistScreenState();
+}
+
+class _ChecklistScreenState extends ConsumerState<ChecklistScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(checklistControllerProvider);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final checklistState = ref.watch(checklistControllerProvider);
 
     return checklistState.when(
@@ -52,47 +77,52 @@ class ChecklistScreen extends ConsumerWidget {
         final total = items.length;
         final progress = total > 0 ? completed / total : 0.0;
 
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Milestone Progress',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 12),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        minHeight: 8,
-                        backgroundColor: context.outline,
-                        valueColor: AlwaysStoppedAnimation(
-                          progress == 1.0
-                              ? AppColors.secondary
-                              : AppColors.primary,
+        return RefreshIndicator(
+          onRefresh: () => ref.refresh(checklistControllerProvider.future),
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Milestone Progress',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 12),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          minHeight: 8,
+                          backgroundColor: context.outline,
+                          valueColor: AlwaysStoppedAnimation(
+                            progress == 1.0
+                                ? AppColors.secondary
+                                : AppColors.primary,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '$completed / $total completed',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: context.muted),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Text(
+                        '$completed / $total completed',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(
+                          color: context.muted,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            ...items.map((item) => _ChecklistTile(item: item)),
-          ],
+              const SizedBox(height: 16),
+              ...items.map((item) => _ChecklistTile(item: item)),
+            ],
+          ),
         );
       },
     );
