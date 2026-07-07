@@ -6,7 +6,7 @@ void main() {
   group('EmailConfirmationScreen', () {
     testWidgets('shows email address', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: EmailConfirmationScreen(email: 'test@s.unikl.edu.my'),
         ),
       );
@@ -16,7 +16,7 @@ void main() {
 
     testWidgets('shows verify your email heading', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: EmailConfirmationScreen(email: 'test@s.unikl.edu.my'),
         ),
       );
@@ -26,7 +26,7 @@ void main() {
 
     testWidgets('shows Open Mail App button', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: EmailConfirmationScreen(email: 'test@s.unikl.edu.my'),
         ),
       );
@@ -36,7 +36,7 @@ void main() {
 
     testWidgets('shows Back to Login button', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: EmailConfirmationScreen(email: 'test@s.unikl.edu.my'),
         ),
       );

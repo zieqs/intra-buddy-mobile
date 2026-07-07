@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intra_buddy_mobile_v2/src/features/auth/presentation/screens/signup_screen.dart';
-import 'package:intra_buddy_mobile_v2/src/core/services/auth_service.dart';
-import 'package:intra_buddy_mobile_v2/src/core/providers/auth_state_provider.dart';
 
 void main() {
   group('SignupScreen', () {

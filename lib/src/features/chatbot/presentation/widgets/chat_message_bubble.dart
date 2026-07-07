@@ -74,7 +74,7 @@ class ChatMessageBubble extends StatelessWidget {
         children: [
           Row(
             children: [
-              CircleAvatar(
+              const CircleAvatar(
                 radius: 9,
                 backgroundColor: AppColors.primary,
               ),

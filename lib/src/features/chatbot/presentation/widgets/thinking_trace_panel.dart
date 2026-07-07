@@ -108,7 +108,7 @@ class _ThinkingTracePanelState extends State<ThinkingTracePanel>
                     children: [
                       Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.auto_awesome,
                             size: 14,
                             color: AppColors.primary,

@@ -299,7 +299,7 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircleAvatar(
+            const CircleAvatar(
               radius: 20,
               backgroundColor: AppColors.primary,
               child: Icon(
