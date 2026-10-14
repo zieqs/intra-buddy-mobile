@@ -113,11 +113,8 @@ class _LogbookScreenState extends ConsumerState<LogbookScreen>
                         const SizedBox(height: 8),
                         Text(
                           '$submitted / ${weeks.length} weeks submitted',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium?.copyWith(
-                            color: context.muted,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: context.muted),
                         ),
                       ],
                     ),

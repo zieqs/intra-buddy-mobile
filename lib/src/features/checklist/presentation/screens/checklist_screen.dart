@@ -111,9 +111,7 @@ class _ChecklistScreenState extends ConsumerState<ChecklistScreen>
                         '$completed / $total completed',
                         style: Theme.of(
                           context,
-                        ).textTheme.bodyMedium?.copyWith(
-                          color: context.muted,
-                        ),
+                        ).textTheme.bodyMedium?.copyWith(color: context.muted),
                       ),
                     ],
                   ),
