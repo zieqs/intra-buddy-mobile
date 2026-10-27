@@ -25,7 +25,7 @@ class ProfileController extends AsyncNotifier<StudentProfile> {
     return result.fold((failure) => throw failure, (profile) => profile);
   }
 
-  Future<void> updateProfile({
+  Future<bool> updateProfile({
     required String fullName,
     String? phoneNumber,
   }) async {
@@ -34,9 +34,9 @@ class ProfileController extends AsyncNotifier<StudentProfile> {
       fullName: fullName,
       phoneNumber: phoneNumber,
     );
-    result.fold(
-      (failure) => state = AsyncError(failure, StackTrace.current),
-      (profile) => state = AsyncData(profile),
-    );
+    return result.fold((_) => false, (profile) {
+      state = AsyncData(profile);
+      return true;
+    });
   }
 }

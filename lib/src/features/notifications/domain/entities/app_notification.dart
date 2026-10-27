@@ -14,4 +14,13 @@ class AppNotification {
     required this.isRead,
     required this.createdAt,
   });
+
+  AppNotification copyWith({bool? isRead}) => AppNotification(
+    id: id,
+    title: title,
+    body: body,
+    type: type,
+    isRead: isRead ?? this.isRead,
+    createdAt: createdAt,
+  );
 }

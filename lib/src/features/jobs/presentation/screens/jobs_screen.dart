@@ -252,6 +252,8 @@ class _JobFormState extends ConsumerState<_JobForm> {
   late final TextEditingController _positionCtrl;
   late final TextEditingController _notesCtrl;
   String _status = 'Pending';
+  bool _isSaving = false;
+  String? _error;
 
   @override
   void initState() {
@@ -270,34 +272,50 @@ class _JobFormState extends ConsumerState<_JobForm> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isSaving = true;
+      _error = null;
+    });
 
     final isEditing = widget.existing != null;
     final controller = ref.read(jobControllerProvider.notifier);
 
-    if (isEditing) {
-      controller.updateApplication(
-        id: widget.existing!.id,
-        companyName: _companyCtrl.text.trim(),
-        position: _positionCtrl.text.trim().isEmpty
-            ? null
-            : _positionCtrl.text.trim(),
-        status: _status,
-        notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
-      );
-    } else {
-      controller.addApplication(
-        companyName: _companyCtrl.text.trim(),
-        position: _positionCtrl.text.trim().isEmpty
-            ? null
-            : _positionCtrl.text.trim(),
-        status: _status,
-        notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
-      );
-    }
+    final saved = isEditing
+        ? await controller.updateApplication(
+            id: widget.existing!.id,
+            companyName: _companyCtrl.text.trim(),
+            position: _positionCtrl.text.trim().isEmpty
+                ? null
+                : _positionCtrl.text.trim(),
+            status: _status,
+            notes: _notesCtrl.text.trim().isEmpty
+                ? null
+                : _notesCtrl.text.trim(),
+          )
+        : await controller.addApplication(
+            companyName: _companyCtrl.text.trim(),
+            position: _positionCtrl.text.trim().isEmpty
+                ? null
+                : _positionCtrl.text.trim(),
+            status: _status,
+            notes: _notesCtrl.text.trim().isEmpty
+                ? null
+                : _notesCtrl.text.trim(),
+          );
 
-    Navigator.pop(context);
+    if (!mounted) return;
+
+    if (saved) {
+      Navigator.pop(context);
+    } else {
+      setState(() {
+        _isSaving = false;
+        _error = 'Could not save. Check your connection and try again.';
+      });
+    }
   }
 
   @override
@@ -363,9 +381,24 @@ class _JobFormState extends ConsumerState<_JobForm> {
               ),
             ),
             const SizedBox(height: 24),
+            if (_error != null) ...[
+              Text(
+                _error!,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
             ElevatedButton(
-              onPressed: _submit,
-              child: Text(widget.existing != null ? 'Update' : 'Add'),
+              onPressed: _isSaving ? null : _submit,
+              child: _isSaving
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(widget.existing != null ? 'Update' : 'Add'),
             ),
             const SizedBox(height: 16),
           ],

@@ -32,9 +32,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     setState(() => _isEditing = !_isEditing);
   }
 
-  void _save() {
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    ref
+
+    final saved = await ref
         .read(profileControllerProvider.notifier)
         .updateProfile(
           fullName: _nameCtrl.text.trim(),
@@ -42,7 +43,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ? null
               : _phoneCtrl.text.trim(),
         );
-    setState(() => _isEditing = false);
+
+    if (!mounted) return;
+
+    if (saved) {
+      setState(() => _isEditing = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Profile updated')));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not save your profile. Please try again.'),
+        ),
+      );
+    }
   }
 
   @override
@@ -122,6 +137,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           labelText: 'Phone Number',
                           prefixIcon: Icon(Icons.phone_outlined),
                         ),
+                        validator: (value) {
+                          final phone = value?.trim() ?? '';
+                          if (phone.isEmpty) return null;
+                          final digits = phone.replaceAll(
+                            RegExp(r'[\s\-\(\)]'),
+                            '',
+                          );
+                          return RegExp(r'^\d{9,12}$').hasMatch(digits)
+                              ? null
+                              : 'Enter 9–12 digits';
+                        },
                       ),
                     ],
                   ),

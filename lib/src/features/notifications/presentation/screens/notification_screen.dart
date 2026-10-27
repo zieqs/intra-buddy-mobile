@@ -10,9 +10,22 @@ class NotificationScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifState = ref.watch(notificationControllerProvider);
+    final unread = ref.watch(unreadNotificationCountProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Notifications')),
+      appBar: AppBar(
+        title: const Text('Notifications'),
+        actions: [
+          if (unread > 0)
+            TextButton.icon(
+              onPressed: () => ref
+                  .read(notificationControllerProvider.notifier)
+                  .markAllAsRead(),
+              icon: const Icon(Icons.done_all, size: 18),
+              label: const Text('Mark all read'),
+            ),
+        ],
+      ),
       body: notifState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(

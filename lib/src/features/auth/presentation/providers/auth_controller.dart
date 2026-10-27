@@ -27,18 +27,32 @@ class AuthController extends AsyncNotifier<User?> {
   }
 
   static String mapAuthError(String raw) {
-    if (raw.contains('already registered')) {
+    final message = raw.toLowerCase();
+
+    if (message.contains('already registered')) {
       return 'An account with this email already exists. Try signing in.';
     }
-    if (raw.contains('validate email')) {
+    if (message.contains('invalid login credentials') ||
+        message.contains('invalid_grant')) {
+      return 'Incorrect email or password. Please try again.';
+    }
+    if (message.contains('email not confirmed')) {
+      return 'Please confirm your email before signing in. Check your inbox.';
+    }
+    if (message.contains('validate email')) {
       return 'Please enter a valid @s.unikl.edu.my email';
     }
-    if (raw.contains('connect') ||
-        raw.contains('network') ||
-        raw.contains('internet')) {
+    if (message.contains('only request this after') ||
+        message.contains('rate limit') ||
+        message.contains('too many requests')) {
+      return 'Too many attempts. Please wait a moment and try again.';
+    }
+    if (message.contains('connect') ||
+        message.contains('network') ||
+        message.contains('internet')) {
       return 'Unable to connect. Please check your internet and try again.';
     }
-    if (raw.contains('Database error')) {
+    if (message.contains('database error')) {
       return 'Could not complete registration due to a server error. Please try again.';
     }
     return 'Something went wrong. Please try again.';

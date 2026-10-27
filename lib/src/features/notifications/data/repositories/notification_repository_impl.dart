@@ -14,7 +14,6 @@ class NotificationRepositoryImpl implements NotificationRepository {
   Future<Result<List<AppNotification>>> loadNotifications() async {
     try {
       final data = await dataSource.loadNotifications();
-      dataSource.markAllAsRead();
       final items = data
           .map((json) => NotificationModel.fromJson(json))
           .toList();
@@ -28,6 +27,16 @@ class NotificationRepositoryImpl implements NotificationRepository {
   Future<Result<void>> markAsRead(int id) async {
     try {
       await dataSource.markAsRead(id);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Result<void>> markAllAsRead() async {
+    try {
+      await dataSource.markAllAsRead();
       return const Right(null);
     } catch (e) {
       return Left(ServerFailure(e.toString()));

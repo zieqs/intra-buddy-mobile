@@ -19,13 +19,18 @@ import '../features/settings/presentation/screens/settings_screen.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
-  final isLoggedIn = authState.value?.session != null;
+  final authService = ref.watch(authServiceProvider);
+  final authRefresh = ValueNotifier<int>(0);
+  final subscription = authService.authStateChanges.listen(
+    (_) => authRefresh.value++,
+  );
 
-  return GoRouter(
+  final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/login',
+    refreshListenable: authRefresh,
     redirect: (context, state) {
+      final isLoggedIn = authService.currentUser != null;
       final isOnAuthPage =
           state.matchedLocation == '/login' ||
           state.matchedLocation == '/signup' ||
@@ -129,4 +134,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+
+  ref.onDispose(() {
+    subscription.cancel();
+    router.dispose();
+    authRefresh.dispose();
+  });
+
+  return router;
 });

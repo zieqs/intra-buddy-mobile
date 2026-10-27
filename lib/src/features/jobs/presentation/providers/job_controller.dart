@@ -26,7 +26,7 @@ class JobController extends AsyncNotifier<List<JobApplication>> {
     return result.fold((failure) => throw failure, (items) => items);
   }
 
-  Future<void> addApplication({
+  Future<bool> addApplication({
     required String companyName,
     String? position,
     required String status,
@@ -39,15 +39,14 @@ class JobController extends AsyncNotifier<List<JobApplication>> {
       status: status,
       notes: notes,
     );
-    result.fold((failure) => state = AsyncError(failure, StackTrace.current), (
-      _,
-    ) {
+    return result.fold((_) => false, (_) {
       ref.invalidateSelf();
       ref.read(dashboardRefreshProvider.notifier).trigger();
+      return true;
     });
   }
 
-  Future<void> updateApplication({
+  Future<bool> updateApplication({
     required int id,
     required String companyName,
     String? position,
@@ -62,11 +61,10 @@ class JobController extends AsyncNotifier<List<JobApplication>> {
       status: status,
       notes: notes,
     );
-    result.fold((failure) => state = AsyncError(failure, StackTrace.current), (
-      _,
-    ) {
+    return result.fold((_) => false, (_) {
       ref.invalidateSelf();
       ref.read(dashboardRefreshProvider.notifier).trigger();
+      return true;
     });
   }
 

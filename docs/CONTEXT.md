@@ -529,7 +529,7 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
 - **Screen:** `NotificationScreen` (ConsumerWidget)
 - **Provider:** `notificationControllerProvider` — `AsyncNotifier<List<AppNotification>>`
 - **Table:** `notifications`
-- **Logic:** On load, marks all unread as read. Supports tap-to-mark-read and swipe-to-delete.
+- **Logic:** Loading never mutates read state. Unread items show a dot + bold title; the shell bell shows an unread-count badge. Tapping an item marks it read; "Mark all read" clears the rest. Swipe-to-delete supported. Live updates arrive via Supabase Realtime (Postgres Changes on `notifications`, filtered by `recipient_id`), so new broadcasts update the badge without restarting the app.
 - **Grouping:** Today / This Week / Earlier (computed locally from `created_at`)
 - **States:** loading, error, empty ("You're all caught up!"), grouped list
 
@@ -853,7 +853,7 @@ The app uses **Material 3** with a custom light theme.
 4. **Riverpod code generation not used:** Manual provider declarations are used instead of `@riverpod` annotations, resulting in more boilerplate.
 5. **Inconsistent controller patterns:** Some features use `AsyncValue.guard` (checklist, logbook), others use `fold()` + `invalidateSelf()` (jobs, documents). Both work but aren't uniform.
 6. **`ChatController` uses manual `Ref`:** Instead of extending `AsyncNotifier`, it stores `Ref` as a field — less idiomatic Riverpod.
-7. **No automated tests:** `mocktail` is in dev deps but no test files exist yet.
+7. **Test coverage is partial:** auth (incl. error mapping), notifications (controller, repository, bell widget), jobs and profile controllers are covered (~53 tests). Checklist, logbook, documents, dashboard and router redirects still have no tests.
 8. **`dio` and `intl` unused:** Dependencies are imported but not used anywhere in the codebase.
 
 ---

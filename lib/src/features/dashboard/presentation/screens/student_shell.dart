@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intra_buddy_mobile_v2/src/app/theme/app_colors.dart';
 import 'package:intra_buddy_mobile_v2/src/core/providers/tab_index_provider.dart';
 import 'package:intra_buddy_mobile_v2/src/features/auth/presentation/providers/auth_controller.dart';
+import 'package:intra_buddy_mobile_v2/src/features/notifications/presentation/widgets/notification_bell.dart';
 
 class StudentShell extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
@@ -134,12 +135,7 @@ class StudentShell extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(titles[currentBranch]),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => context.push('/notifications'),
-          ),
-        ],
+        actions: const [NotificationBell()],
       ),
       body: navigationShell,
       bottomNavigationBar: Padding(
