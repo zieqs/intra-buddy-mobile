@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../domain/entities/document_item.dart';
+import '../document_url_opener.dart';
 import '../providers/document_controller.dart';
 
 class MyDocumentsScreen extends ConsumerWidget {
@@ -158,15 +158,20 @@ class MyDocumentsScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () {
-              if (nameCtrl.text.trim().isNotEmpty) {
-                ref
-                    .read(documentControllerProvider.notifier)
-                    .uploadDocument(
-                      filePath: filePath,
-                      itemName: nameCtrl.text.trim(),
-                    );
-              }
+              final itemName = nameCtrl.text.trim();
+              if (itemName.isEmpty) return;
+
+              final messenger = ScaffoldMessenger.of(ref.context);
               Navigator.pop(context);
+
+              ref
+                  .read(documentControllerProvider.notifier)
+                  .uploadDocument(filePath: filePath, itemName: itemName)
+                  .then((error) {
+                    messenger.showSnackBar(
+                      SnackBar(content: Text(error ?? 'Document uploaded')),
+                    );
+                  });
             },
             child: const Text('Upload'),
           ),
@@ -245,9 +250,16 @@ class _DocumentCard extends ConsumerWidget {
                 final url = await ref
                     .read(documentControllerProvider.notifier)
                     .getViewUrl(item.filePath);
-                final uri = Uri.parse(url);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri);
+                final opened = await openDocumentUrl(Uri.parse(url));
+                if (!context.mounted) return;
+                if (!opened) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        "Couldn't open the document. Please try again.",
+                      ),
+                    ),
+                  );
                 }
               } catch (e) {
                 if (!context.mounted) return;

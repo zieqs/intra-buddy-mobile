@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/constants/app_constants.dart';
+import 'document_storage_path.dart';
 
 class DocumentRemoteDataSource {
   final AuthService authService;
@@ -32,7 +33,11 @@ class DocumentRemoteDataSource {
 
     final ext = filePath.split('.').last;
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final storagePath = 'student-documents/$_userId/$timestamp.$ext';
+    final storagePath = documentStoragePath(
+      userId: _userId,
+      filePath: filePath,
+      timestamp: timestamp,
+    );
 
     await supabase.storage
         .from('student-documents')
@@ -60,7 +65,7 @@ class DocumentRemoteDataSource {
   Future<String> getViewUrl(String storagePath) async {
     final response = await supabase.storage
         .from('student-documents')
-        .createSignedUrl(storagePath, 60);
+        .createSignedUrl(storagePath, 300);
     return response;
   }
 

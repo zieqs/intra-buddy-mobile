@@ -28,7 +28,7 @@ class DocumentController extends AsyncNotifier<List<DocumentItem>> {
     return result.fold((failure) => throw failure, (items) => items);
   }
 
-  Future<void> uploadDocument({
+  Future<String?> uploadDocument({
     required String filePath,
     required String itemName,
     String? notes,
@@ -39,12 +39,19 @@ class DocumentController extends AsyncNotifier<List<DocumentItem>> {
       itemName: itemName,
       notes: notes,
     );
-    result.fold((failure) => state = AsyncError(failure, StackTrace.current), (
-      _,
-    ) {
+    return result.fold((failure) => _uploadErrorMessage(failure.message), (_) {
       ref.invalidateSelf();
       ref.read(dashboardRefreshProvider.notifier).trigger();
+      return null;
     });
+  }
+
+  /// A failed upload must not replace the list with a load-error screen.
+  String _uploadErrorMessage(String raw) {
+    if (raw.toLowerCase().contains('5 mb')) {
+      return 'File exceeds the 5 MB limit.';
+    }
+    return 'Could not upload. Please try again.';
   }
 
   Future<String> getViewUrl(String storagePath) async {

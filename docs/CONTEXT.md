@@ -518,7 +518,7 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
 - **Table:** `digital_wallet_items`
 - **Storage bucket:** `student-documents`
 - **Upload:** Supports `image_picker` (gallery) + `file_picker` (any file), 5 MB limit
-- **Storage path:** `student-documents/{userId}/{timestamp}.{ext}`
+- **Storage path (object key):** `{userId}/{timestamp}.{ext}` — the bucket name is not part of the key
 - **View:** Generates 60-second signed URL, opens via `url_launcher`
 - **Delete:** Removes both storage file and DB row (with confirmation dialog)
 - **States:** loading, error, empty, data with file type icons (PDF red, DOC blue, image green, etc.)
@@ -785,7 +785,7 @@ Standard Supabase Auth schema (`auth.users`, `auth.sessions`, `auth.refresh_toke
 ### 12.5 Storage
 
 - **Bucket:** `student-documents`
-- **Path pattern:** `student-documents/{userId}/{timestamp}.{ext}`
+- **Path pattern (object key):** `{userId}/{timestamp}.{ext}` — bucket name is not included
 - **Access:** Signed URLs (60-second expiry) for viewing
 
 ---
