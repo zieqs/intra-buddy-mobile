@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/services/auth_service.dart';
+import 'checklist_merger.dart';
 
 class ChecklistRemoteDataSource {
   final AuthService authService;
@@ -18,52 +19,44 @@ class ChecklistRemoteDataSource {
         .select()
         .eq('semester_id', semesterId)
         .order('display_order', ascending: true);
+    if (templates.isEmpty) return [];
 
-    final results = <Map<String, dynamic>>[];
-    for (final template in templates) {
-      final existing = await supabase
-          .from('student_checklists')
-          .select()
-          .eq('student_id', _userId)
-          .eq('checklist_item_id', template['id'])
-          .maybeSingle();
+    final templateIds = templates.map((t) => t['id'] as int).toList();
 
-      if (existing != null) {
-        results.add({
-          'id': existing['id'],
-          'checklist_item_id': template['id'],
-          'title': template['title'],
-          'description': template['description'],
-          'is_completed': existing['is_completed'] ?? false,
-          'is_required': template['required'] ?? true,
-          'completed_at': existing['completed_at'],
-          'display_order': template['display_order'],
-        });
-      } else {
-        final inserted = await supabase
-            .from('student_checklists')
-            .insert({
-              'student_id': _userId,
-              'checklist_item_id': template['id'],
-              'is_completed': false,
-            })
-            .select()
-            .single();
+    // One query for every template the student already has.
+    final existing = await supabase
+        .from('student_checklists')
+        .select()
+        .eq('student_id', _userId)
+        .inFilter('checklist_item_id', templateIds);
 
-        results.add({
-          'id': inserted['id'],
-          'checklist_item_id': template['id'],
-          'title': template['title'],
-          'description': template['description'],
-          'is_completed': false,
-          'is_required': template['required'] ?? true,
-          'completed_at': null,
-          'display_order': template['display_order'],
-        });
-      }
+    final existingTemplateIds = existing
+        .map((row) => row['checklist_item_id'])
+        .toSet();
+    final missing = templates
+        .where((template) => !existingTemplateIds.contains(template['id']))
+        .toList();
+
+    // One batch insert instead of one insert per missing template.
+    final List<Map<String, dynamic>> inserted;
+    if (missing.isEmpty) {
+      inserted = const [];
+    } else {
+      inserted = await supabase.from('student_checklists').insert([
+        for (final template in missing)
+          {
+            'student_id': _userId,
+            'checklist_item_id': template['id'],
+            'is_completed': false,
+          },
+      ]).select();
     }
 
-    return results;
+    return mergeChecklistRows(
+      templates: templates,
+      existing: existing,
+      inserted: inserted,
+    );
   }
 
   Future<void> toggleItem(int checklistId, bool completed) async {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/providers/auth_state_provider.dart';
@@ -51,32 +53,39 @@ final dashboardProvider = FutureProvider<DashboardData>((ref) async {
     return result.length;
   }
 
-  final milestonesCount = await count('student_checklists', 'id');
-  final completedCount = await supabase
-      .from('student_checklists')
-      .select('id')
-      .eq('student_id', userId)
-      .eq('is_completed', true);
-
-  final jobsCount = await count('job_applications', 'id');
-  final docsCount = await count('digital_wallet_items', 'id');
-
-  final weeks = await supabase
-      .from('weekly_logbook_tracking')
-      .select('is_submitted')
-      .eq('student_id', userId);
+  // All six queries run at once instead of one after another.
+  final (
+    milestonesCount,
+    completed,
+    jobsCount,
+    docsCount,
+    weeks,
+    unread,
+  ) = await (
+    count('student_checklists', 'id'),
+    supabase
+        .from('student_checklists')
+        .select('id')
+        .eq('student_id', userId)
+        .eq('is_completed', true),
+    count('job_applications', 'id'),
+    count('digital_wallet_items', 'id'),
+    supabase
+        .from('weekly_logbook_tracking')
+        .select('is_submitted')
+        .eq('student_id', userId),
+    supabase
+        .from('notifications')
+        .select('id')
+        .eq('recipient_id', userId)
+        .eq('is_read', false),
+  ).wait;
 
   final submittedWeeks = weeks.where((w) => w['is_submitted'] == true).length;
 
-  final unread = await supabase
-      .from('notifications')
-      .select('id')
-      .eq('recipient_id', userId)
-      .eq('is_read', false);
-
   return DashboardData(
     totalMilestones: milestonesCount,
-    completedMilestones: completedCount.length,
+    completedMilestones: completed.length,
     jobApplications: jobsCount,
     documents: docsCount,
     submittedWeeks: submittedWeeks,

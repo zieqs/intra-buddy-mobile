@@ -465,7 +465,7 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
 ### 10.1 Dashboard
 
 - **Screen:** `DashboardHome` (ConsumerWidget with RefreshIndicator)
-- **Provider:** `dashboardProvider` — `FutureProvider<DashboardData>` aggregating data from 5 Supabase tables
+- **Provider:** `dashboardProvider` — `FutureProvider<DashboardData>` aggregating data from 5 Supabase tables in parallel
 - **Tables:** `student_checklists`, `job_applications`, `digital_wallet_items`, `weekly_logbook_tracking`, `notifications`
 - **UI:** Welcome greeting, stat cards (milestones, applications, documents, logbook %), notification badge card
 - **Auto-refresh:** Watches `dashboardRefreshProvider` — a `Notifier<int>` bumped by every feature controller after mutations (toggle checklist, add job, upload document, submit logbook, etc.)
@@ -480,7 +480,7 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
 - **Logic:**
   1. Find student's enrolled semester (or active semester)
   2. Load `checklist_templates` for that semester, ordered by `display_order`
-  3. Check/create `student_checklists` rows for each template (lazy creation)
+  3. Fetch the student's existing `student_checklists` rows in **one** query, then batch-create any missing ones (lazy creation)
   4. Display with toggle completion
 - **Optimistic update:** Toggle flips immediately in local state, then persists to Supabase
 - **States:** loading, error with retry, empty, data with progress bar + card tiles
