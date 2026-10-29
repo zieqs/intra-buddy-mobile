@@ -6,6 +6,8 @@ import '../../../../core/providers/auth_state_provider.dart';
 import '../../../../core/providers/dashboard_refresh_provider.dart';
 import '../../../../core/providers/tab_index_provider.dart';
 import '../journey_progress.dart';
+import '../../../logbook/presentation/logbook_reminder_planner.dart';
+import '../../../logbook/presentation/services/logbook_reminder_service.dart';
 
 class DashboardData {
   final int totalMilestones;
@@ -115,6 +117,13 @@ final dashboardProvider = FutureProvider<DashboardData>((ref) async {
     now: DateTime.now(),
   );
 
+  // Keep local logbook reminders in sync with the current deadlines.
+  unawaited(
+    LogbookReminderService.instance.reschedule(
+      weeks.map(_toReminderWeek).toList(),
+    ),
+  );
+
   return DashboardData(
     totalMilestones: milestonesCount,
     completedMilestones: completed.length,
@@ -130,6 +139,12 @@ DateTime? _parseDate(Object? value) =>
     value is String ? DateTime.tryParse(value) : null;
 
 JourneyWeek _toJourneyWeek(Map<String, dynamic> row) => JourneyWeek(
+  weekNumber: (row['week_number'] as num).toInt(),
+  endDate: DateTime.parse(row['week_end_date'] as String),
+  isSubmitted: row['is_submitted'] == true,
+);
+
+ReminderWeek _toReminderWeek(Map<String, dynamic> row) => ReminderWeek(
   weekNumber: (row['week_number'] as num).toInt(),
   endDate: DateTime.parse(row['week_end_date'] as String),
   isSubmitted: row['is_submitted'] == true,

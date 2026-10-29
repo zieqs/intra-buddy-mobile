@@ -83,6 +83,8 @@ Both apps share the same Supabase backend (Postgres, Auth, Realtime, Storage).
 | `flutter_dotenv` | ^6.0.1 | Environment variables from `.env` |
 | `google_fonts` | ^6.2.1 | Google Fonts (Inter) |
 | `pdfx` | ^2.11.0 | In-app PDF rendering (native OS engine) |
+| `flutter_local_notifications` | ^22.3.3 | Local logbook reminders |
+| `timezone` / `flutter_timezone` | ^0.11 / ^5.1 | Scheduling in the device's local time |
 
 ### Dev Dependencies
 
@@ -556,6 +558,7 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
   - **overdue** (red; late weeks stay submittable)
   - **upcoming** (grey, locked — future weeks cannot be marked)
 - **Submission:** explicit `Mark` with a confirmation explaining the app does not upload the logbook; optimistic update with rollback on failure
+- **Reminders:** local notifications scheduled for 09:00 the day before each unsubmitted `week_end_date` (`flutter_local_notifications` + `timezone`). Rescheduled whenever dashboard data loads (app open, tab switch, mutations) and cancelled when a week is submitted. Tapping opens Logbook. Android uses `POST_NOTIFICATIONS` plus the boot receiver; core library desugaring is enabled for the plugin.
 - **States:** loading, error, empty, data
 
 ### 10.8 Profile

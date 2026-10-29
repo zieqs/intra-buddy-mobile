@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../core/providers/auth_state_provider.dart';
+import 'navigation_keys.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/signup_screen.dart';
 import '../features/auth/presentation/screens/email_confirmation_screen.dart';
@@ -16,8 +17,6 @@ import '../features/logbook/presentation/screens/logbook_screen.dart';
 import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/settings/presentation/screens/settings_screen.dart';
 
-final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
-
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authService = ref.watch(authServiceProvider);
   final authRefresh = ValueNotifier<int>(0);
@@ -26,7 +25,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   );
 
   final router = GoRouter(
-    navigatorKey: _rootNavigatorKey,
+    navigatorKey: appRootNavigatorKey,
     initialLocation: '/login',
     refreshListenable: authRefresh,
     redirect: (context, state) {
@@ -103,31 +102,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: appRootNavigatorKey,
         path: '/my-documents',
         name: 'my-documents',
         builder: (context, state) => const MyDocumentsScreen(),
       ),
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: appRootNavigatorKey,
         path: '/notifications',
         name: 'notifications',
         builder: (context, state) => const NotificationScreen(),
       ),
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: appRootNavigatorKey,
         path: '/logbook',
         name: 'logbook',
         builder: (context, state) => const LogbookScreen(),
       ),
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: appRootNavigatorKey,
         path: '/profile',
         name: 'profile',
         builder: (context, state) => const ProfileScreen(),
       ),
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: appRootNavigatorKey,
         path: '/settings',
         name: 'settings',
         builder: (context, state) => const SettingsScreen(),

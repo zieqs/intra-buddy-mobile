@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_controller.dart';
+import '../../../logbook/presentation/services/logbook_reminder_service.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -28,6 +30,31 @@ class SettingsScreen extends ConsumerWidget {
                     style: TextStyle(color: context.muted),
                   ),
                 ),
+                if (kDebugMode) ...[
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                  ListTile(
+                    leading: const Icon(
+                      Icons.notifications_active_outlined,
+                      color: AppColors.primary,
+                    ),
+                    title: const Text('Send test notification'),
+                    subtitle: const Text('Debug builds only'),
+                    onTap: () async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      final shown = await LogbookReminderService.instance
+                          .showTestNotification();
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            shown
+                                ? 'Test notification sent'
+                                : 'Notifications are not available',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
                 const Divider(height: 1, indent: 16, endIndent: 16),
                 ListTile(
                   leading: const Icon(Icons.logout, color: AppColors.error),
