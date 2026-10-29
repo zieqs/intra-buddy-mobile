@@ -535,18 +535,25 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
 
 - **Screen:** `NotificationScreen` (ConsumerWidget)
 - **Provider:** `notificationControllerProvider` — `AsyncNotifier<List<AppNotification>>`
-- **Table:** `notifications`
+- **Table:** `notifications` — personal messages plus one per-student copy of each broadcast
+- **Broadcasts:** `broadcast_messages` stays the source of truth. Database triggers fan a copy out to every student when `target_roles` includes `students_all`, sync title/body/images when the broadcast is edited, and delete the copies when the broadcast is deleted.
+- **Images:** broadcast images are copied into `image_paths`; the card shows up to three thumbnails (public `broadcast-media` bucket) and opens a zoomable full-screen viewer.
 - **Logic:** Loading never mutates read state. Unread items show a dot + bold title; the shell bell shows an unread-count badge. Tapping an item marks it read; "Mark all read" clears the rest. Swipe-to-delete supported. Live updates arrive via Supabase Realtime (Postgres Changes on `notifications`, filtered by `recipient_id`), so new broadcasts update the badge without restarting the app.
 - **Grouping:** Today / This Week / Earlier (computed locally from `created_at`)
 - **States:** loading, error, empty ("You're all caught up!"), grouped list
 
 ### 10.7 Logbook
 
-- **Screen:** `LogbookScreen` (ConsumerWidget)
+- **Screen:** `LogbookScreen` (ConsumerStatefulWidget, refreshes on resume)
 - **Provider:** `logbookControllerProvider` — `AsyncNotifier<List<LogbookWeek>>`
 - **Table:** `weekly_logbook_tracking`
-- **UI:** Progress bar (submitted/total), week cards with CircleAvatar (week number or check icon), Submit button on unsubmitted weeks, green checkmark on submitted
-- **Optimistic update:** Toggle flips immediately, updates local list + counter before Supabase confirms
+- **UI:** Header card with `Week N of 14`, submitted count and progress. Week cards are date-aware via `buildLogbookSummary`:
+  - **submitted** (teal, undo action)
+  - **current** (blue, "This week")
+  - **due soon** (amber, within 3 days)
+  - **overdue** (red; late weeks stay submittable)
+  - **upcoming** (grey, locked — future weeks cannot be marked)
+- **Submission:** explicit `Mark` with a confirmation explaining the app does not upload the logbook; optimistic update with rollback on failure
 - **States:** loading, error, empty, data
 
 ### 10.8 Profile
@@ -736,6 +743,7 @@ All providers are defined manually (no Riverpod code generation). Repository pro
 | created_at | timestamptz | NULL | now() |
 | scheduled_for | timestamptz | NULL | |
 | broadcast_id | int8 | FK → broadcast_messages.id | |
+| image_paths | text[] | NOT NULL | '{}' |
 
 #### `broadcast_messages`
 | Column | Type | Constraints | Default |
@@ -746,6 +754,7 @@ All providers are defined manually (no Riverpod code generation). Repository pro
 | body | text | NULL | |
 | target_roles | text[] | NULL | |
 | sent_at | timestamptz | NULL | now() |
+| image_paths | text[] | NOT NULL | '{}' |
 
 #### `chat_sessions`
 | Column | Type | Constraints | Default |
@@ -793,7 +802,11 @@ Standard Supabase Auth schema (`auth.users`, `auth.sessions`, `auth.refresh_toke
 
 - **Bucket:** `student-documents`
 - **Path pattern (object key):** `{userId}/{timestamp}.{ext}` — bucket name is not included
-- **Access:** Signed URLs (60-second expiry) for viewing
+- **Access:** authenticated downloads through the Storage API; no signed URLs
+
+- **Bucket:** `broadcast-media` (public)
+- **Path pattern:** `broadcast-images/{coordinatorId}/{uuid}.{ext}`
+- **Access:** public URLs, used for broadcast image thumbnails in the notification inbox
 
 ---
 
