@@ -52,10 +52,10 @@ class DocumentRepositoryImpl implements DocumentRepository {
   }
 
   @override
-  Future<Result<String>> getViewUrl(String storagePath) async {
+  Future<Result<void>> renameDocument(int id, String itemName) async {
     try {
-      final url = await dataSource.getViewUrl(storagePath);
-      return Right(url);
+      await dataSource.renameDocument(id, itemName);
+      return const Right(null);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }

@@ -62,10 +62,16 @@ class DocumentController extends AsyncNotifier<List<DocumentItem>> {
     return result.fold((failure) => throw failure, (bytes) => bytes);
   }
 
-  Future<String> getViewUrl(String storagePath) async {
+  Future<bool> renameDocument(int id, String itemName) async {
+    final name = itemName.trim();
+    if (name.isEmpty) return false;
+
     final repo = ref.read(documentRepositoryProvider);
-    final result = await repo.getViewUrl(storagePath);
-    return result.fold((failure) => throw failure, (url) => url);
+    final result = await repo.renameDocument(id, name);
+    return result.fold((_) => false, (_) {
+      ref.invalidateSelf();
+      return true;
+    });
   }
 
   Future<void> deleteDocument(int id, String storagePath) async {

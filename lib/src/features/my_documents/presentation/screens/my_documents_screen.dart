@@ -4,7 +4,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../domain/entities/document_item.dart';
-import '../document_url_opener.dart';
 import '../providers/document_controller.dart';
 import '../save_document.dart';
 import 'document_preview_screen.dart';
@@ -123,7 +122,14 @@ class MyDocumentsScreen extends ConsumerWidget {
 
   void _pickImage(WidgetRef ref) async {
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery);
+    // Resize and re-encode before upload: keeps photos well under the 5 MB
+    // limit, avoids full-resolution decodes, and turns iOS HEIC into JPEG.
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+      maxWidth: 2000,
+      maxHeight: 2000,
+    );
     if (image != null) {
       final name = image.path.split('/').last;
       _showNameDialog(ref, image.path, name);
@@ -253,28 +259,27 @@ class _DocumentCard extends ConsumerWidget {
                   builder: (_) => DocumentPreviewScreen(document: item),
                 ),
               );
-            } else if (value == 'browser') {
-              try {
-                final url = await ref
-                    .read(documentControllerProvider.notifier)
-                    .getViewUrl(item.filePath);
-                final opened = await openDocumentUrl(Uri.parse(url));
-                if (!context.mounted) return;
-                if (!opened) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        "Couldn't open the document. Please try again.",
-                      ),
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Failed to open document')),
-                );
-              }
+            } else if (value == 'rename') {
+              final newName = await showDialog<String>(
+                context: context,
+                builder: (_) => _RenameDialog(initialName: item.itemName),
+              );
+              if (newName == null || !context.mounted) return;
+
+              final messenger = ScaffoldMessenger.of(context);
+              final renamed = await ref
+                  .read(documentControllerProvider.notifier)
+                  .renameDocument(item.id, newName);
+              if (!context.mounted) return;
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text(
+                    renamed
+                        ? 'Document renamed'
+                        : 'Could not rename the document.',
+                  ),
+                ),
+              );
             } else if (value == 'download') {
               final messenger = ScaffoldMessenger.of(context);
               try {
@@ -335,10 +340,10 @@ class _DocumentCard extends ConsumerWidget {
               ),
             ),
             const PopupMenuItem(
-              value: 'browser',
+              value: 'rename',
               child: ListTile(
-                leading: Icon(Icons.open_in_browser),
-                title: Text('Open in browser'),
+                leading: Icon(Icons.edit_outlined),
+                title: Text('Rename'),
                 dense: true,
               ),
             ),
@@ -380,5 +385,64 @@ class _DocumentCard extends ConsumerWidget {
       'Dec',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+}
+
+class _RenameDialog extends StatefulWidget {
+  final String initialName;
+
+  const _RenameDialog({required this.initialName});
+
+  @override
+  State<_RenameDialog> createState() => _RenameDialogState();
+}
+
+class _RenameDialogState extends State<_RenameDialog> {
+  late final TextEditingController _controller;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialName);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final name = _controller.text.trim();
+    if (name.isEmpty) {
+      setState(() => _error = 'Name cannot be empty');
+      return;
+    }
+    Navigator.pop(context, name);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Rename Document'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        textCapitalization: TextCapitalization.sentences,
+        decoration: InputDecoration(labelText: 'Name', errorText: _error),
+        onSubmitted: (_) => _submit(),
+        onChanged: (_) {
+          if (_error != null) setState(() => _error = null);
+        },
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        TextButton(onPressed: _submit, child: const Text('Rename')),
+      ],
+    );
   }
 }

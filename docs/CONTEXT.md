@@ -79,7 +79,7 @@ Both apps share the same Supabase backend (Postgres, Auth, Realtime, Storage).
 | `intl` | ^0.20.2 | Date formatting (not currently used) |
 | `image_picker` | ^1.1.0 | Camera/gallery for document upload |
 | `file_picker` | ^11.0.2 | File picker for document upload |
-| `url_launcher` | ^6.3.1 | Open signed URLs externally |
+| `url_launcher` | ^6.3.1 | Open external links (mailto) |
 | `flutter_dotenv` | ^6.0.1 | Environment variables from `.env` |
 | `google_fonts` | ^6.2.1 | Google Fonts (Inter) |
 | `pdfx` | ^2.11.0 | In-app PDF rendering (native OS engine) |
@@ -518,10 +518,10 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
 - **Provider:** `documentControllerProvider` — `AsyncNotifier<List<DocumentItem>>`
 - **Table:** `digital_wallet_items`
 - **Storage bucket:** `student-documents`
-- **Upload:** Supports `image_picker` (gallery) + `file_picker` (any file), 5 MB limit
+- **Upload:** Supports `image_picker` (gallery) + `file_picker` (any file), 5 MB limit. Gallery picks are resized to max 2000 px at quality 85 before upload
 - **Storage path (object key):** `{userId}/{timestamp}.{ext}` — the bucket name is not part of the key
 - **Preview:** Downloads the bytes through the authenticated client (no signed URL) and renders PDFs in-app with `pdfx`; images render with `Image.memory`
-- **Open in browser:** Generates a 300-second signed URL and opens it externally
+- **Rename:** Updates the document's display name (the stored object key stays unchanged)
 - **Download:** Saves the file to the device through the system "Save to…" picker (SAF on Android) — no storage permission required
 - **Delete:** Removes both storage file and DB row (with confirmation dialog)
 - **States:** loading, error, empty, data with file type icons (PDF red, DOC blue, image green, etc.)
@@ -841,7 +841,7 @@ The app uses **Material 3** with a custom light theme.
 | Dashboard | Complete | Auto-refresh via signal, tappable stat cards |
 | Checklist | Complete | Lazy row creation, optimistic toggle |
 | Job Applications | Complete | DB enum statuses, CRUD with bottom sheet |
-| My Documents | Complete | Gallery/file upload, signed URLs, delete |
+| My Documents | Complete | Gallery/file upload, in-app preview, download, rename, delete |
 | Weekly Logbook | Complete | Submit/unsubmit with progress bar |
 | Notifications | Complete | Grouped list, swipe-to-delete, auto-mark-read |
 | Chatbot | Complete | Rule-based FAQ matching, session history drawer |

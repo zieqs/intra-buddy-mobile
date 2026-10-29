@@ -6,7 +6,6 @@ import 'package:pdfx/pdfx.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../domain/entities/document_item.dart';
-import '../document_url_opener.dart';
 import '../preview_kind.dart';
 import '../providers/document_controller.dart';
 import '../save_document.dart';
@@ -91,32 +90,24 @@ class _DocumentPreviewScreenState extends ConsumerState<DocumentPreviewScreen> {
     }
   }
 
-  Future<void> _openExternally() async {
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      final url = await ref
-          .read(documentControllerProvider.notifier)
-          .getViewUrl(widget.document.filePath);
-      final opened = await openDocumentUrl(Uri.parse(url));
-      if (!opened) {
-        messenger.showSnackBar(
-          const SnackBar(
-            content: Text("Couldn't open the document in a browser."),
-          ),
-        );
-      }
-    } catch (_) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Failed to open document')),
-      );
-    }
-  }
-
   Future<void> _download() async {
-    final bytes = _bytes;
-    if (bytes == null) return;
-
     final messenger = ScaffoldMessenger.of(context);
+
+    var bytes = _bytes;
+    if (bytes == null) {
+      try {
+        bytes = await ref
+            .read(documentControllerProvider.notifier)
+            .downloadDocument(widget.document.filePath);
+      } catch (_) {
+        if (!mounted) return;
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Could not download the document')),
+        );
+        return;
+      }
+    }
+
     final outcome = await saveDocumentToDevice(
       fileName: downloadFileName(
         widget.document.itemName,
@@ -136,16 +127,10 @@ class _DocumentPreviewScreenState extends ConsumerState<DocumentPreviewScreen> {
       appBar: AppBar(
         title: Text(widget.document.itemName, overflow: TextOverflow.ellipsis),
         actions: [
-          if (_bytes != null)
-            IconButton(
-              tooltip: 'Download',
-              icon: const Icon(Icons.download_outlined),
-              onPressed: _download,
-            ),
           IconButton(
-            tooltip: 'Open in browser',
-            icon: const Icon(Icons.open_in_browser),
-            onPressed: _openExternally,
+            tooltip: 'Download',
+            icon: const Icon(Icons.download_outlined),
+            onPressed: _download,
           ),
         ],
       ),
@@ -164,8 +149,6 @@ class _DocumentPreviewScreenState extends ConsumerState<DocumentPreviewScreen> {
         title: _error!,
         actionLabel: 'Retry',
         onAction: _load,
-        secondaryLabel: 'Open in browser',
-        onSecondary: _openExternally,
       );
     }
 
@@ -182,14 +165,21 @@ class _DocumentPreviewScreenState extends ConsumerState<DocumentPreviewScreen> {
         return InteractiveViewer(
           minScale: 1,
           maxScale: 5,
-          child: Center(child: Image.memory(_bytes!, fit: BoxFit.contain)),
+          child: Center(
+            child: Image.memory(
+              _bytes!,
+              fit: BoxFit.contain,
+              // Bound the decoded size so a large photo cannot balloon memory.
+              cacheWidth: 2048,
+            ),
+          ),
         );
       case DocumentPreviewKind.unsupported:
         return _MessageState(
           icon: Icons.insert_drive_file_outlined,
           title: "Preview isn't available for this file type.",
-          actionLabel: 'Open in browser',
-          onAction: _openExternally,
+          actionLabel: 'Download',
+          onAction: _download,
         );
     }
   }
@@ -200,16 +190,12 @@ class _MessageState extends StatelessWidget {
   final String title;
   final String actionLabel;
   final VoidCallback onAction;
-  final String? secondaryLabel;
-  final VoidCallback? onSecondary;
 
   const _MessageState({
     required this.icon,
     required this.title,
     required this.actionLabel,
     required this.onAction,
-    this.secondaryLabel,
-    this.onSecondary,
   });
 
   @override
@@ -229,16 +215,6 @@ class _MessageState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             FilledButton(onPressed: onAction, child: Text(actionLabel)),
-            if (secondaryLabel != null) ...[
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: onSecondary,
-                child: Text(
-                  secondaryLabel!,
-                  style: const TextStyle(color: AppColors.primary),
-                ),
-              ),
-            ],
           ],
         ),
       ),

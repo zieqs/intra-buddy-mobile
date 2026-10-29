@@ -10,6 +10,6 @@ abstract class DocumentRepository {
     required String itemName,
     String? notes,
   });
-  Future<Result<String>> getViewUrl(String storagePath);
+  Future<Result<void>> renameDocument(int id, String itemName);
   Future<Result<void>> deleteDocument(int id, String storagePath);
 }

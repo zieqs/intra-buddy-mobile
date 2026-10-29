@@ -67,11 +67,11 @@ class DocumentRemoteDataSource {
     return supabase.storage.from('student-documents').download(storagePath);
   }
 
-  Future<String> getViewUrl(String storagePath) async {
-    final response = await supabase.storage
-        .from('student-documents')
-        .createSignedUrl(storagePath, 300);
-    return response;
+  Future<void> renameDocument(int id, String itemName) async {
+    await supabase
+        .from('digital_wallet_items')
+        .update({'item_name': itemName})
+        .eq('id', id);
   }
 
   Future<void> deleteDocument(int id, String storagePath) async {

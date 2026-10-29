@@ -11,10 +11,13 @@ class _FakeDocumentRepository implements DocumentRepository {
   final List<DocumentItem> items = [];
   bool failUploads = false;
   bool failDownloads = false;
+  bool failRenames = false;
   String failureMessage = 'new row violates row-level security policy';
   int uploadCalls = 0;
   int loadCalls = 0;
   int downloadCalls = 0;
+  int renameCalls = 0;
+  String? lastRenamedTo;
 
   @override
   Future<Result<List<DocumentItem>>> loadDocuments() async {
@@ -49,8 +52,12 @@ class _FakeDocumentRepository implements DocumentRepository {
   }
 
   @override
-  Future<Result<String>> getViewUrl(String storagePath) async =>
-      const Right('https://example.com/signed');
+  Future<Result<void>> renameDocument(int id, String itemName) async {
+    renameCalls++;
+    if (failRenames) return Left(ServerFailure(failureMessage));
+    lastRenamedTo = itemName;
+    return const Right(null);
+  }
 
   @override
   Future<Result<void>> deleteDocument(int id, String storagePath) async =>
@@ -123,6 +130,39 @@ void main() {
             .downloadDocument('uid/CV.pdf'),
         throwsA(isA<Failure>()),
       );
+    });
+  });
+
+  group('renameDocument', () {
+    test('reports success and trims the new name', () async {
+      final renamed = await container
+          .read(documentControllerProvider.notifier)
+          .renameDocument(1, '  Offer Letter  ');
+
+      expect(renamed, isTrue);
+      expect(repo.renameCalls, 1);
+      expect(repo.lastRenamedTo, 'Offer Letter');
+    });
+
+    test('rejects a blank name without touching the repository', () async {
+      final renamed = await container
+          .read(documentControllerProvider.notifier)
+          .renameDocument(1, '   ');
+
+      expect(renamed, isFalse);
+      expect(repo.renameCalls, 0);
+    });
+
+    test('reports failure and keeps the list', () async {
+      repo.failRenames = true;
+
+      final renamed = await container
+          .read(documentControllerProvider.notifier)
+          .renameDocument(1, 'Offer Letter');
+
+      expect(renamed, isFalse);
+      expect(container.read(documentControllerProvider).hasError, isFalse);
+      expect(container.read(documentControllerProvider).value, isNotNull);
     });
   });
 }
