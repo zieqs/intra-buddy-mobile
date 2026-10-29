@@ -522,6 +522,7 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
 - **Storage path (object key):** `{userId}/{timestamp}.{ext}` — the bucket name is not part of the key
 - **Preview:** Downloads the bytes through the authenticated client (no signed URL) and renders PDFs in-app with `pdfx`; images render with `Image.memory`
 - **Open in browser:** Generates a 300-second signed URL and opens it externally
+- **Download:** Saves the file to the device through the system "Save to…" picker (SAF on Android) — no storage permission required
 - **Delete:** Removes both storage file and DB row (with confirmation dialog)
 - **States:** loading, error, empty, data with file type icons (PDF red, DOC blue, image green, etc.)
 - **Upload flow:** Choose source → pick file → name dialog → upload

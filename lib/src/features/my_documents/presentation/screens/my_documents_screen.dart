@@ -6,6 +6,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../domain/entities/document_item.dart';
 import '../document_url_opener.dart';
 import '../providers/document_controller.dart';
+import '../save_document.dart';
 import 'document_preview_screen.dart';
 
 class MyDocumentsScreen extends ConsumerWidget {
@@ -274,6 +275,28 @@ class _DocumentCard extends ConsumerWidget {
                   const SnackBar(content: Text('Failed to open document')),
                 );
               }
+            } else if (value == 'download') {
+              final messenger = ScaffoldMessenger.of(context);
+              try {
+                final bytes = await ref
+                    .read(documentControllerProvider.notifier)
+                    .downloadDocument(item.filePath);
+                final outcome = await saveDocumentToDevice(
+                  fileName: downloadFileName(item.itemName, item.fileType),
+                  bytes: bytes,
+                );
+                if (!context.mounted) return;
+                messenger.showSnackBar(
+                  SnackBar(content: Text(saveOutcomeMessage(outcome))),
+                );
+              } catch (_) {
+                if (!context.mounted) return;
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Could not download the document'),
+                  ),
+                );
+              }
             } else if (value == 'delete') {
               final confirmed = await showDialog<bool>(
                 context: context,
@@ -316,6 +339,14 @@ class _DocumentCard extends ConsumerWidget {
               child: ListTile(
                 leading: Icon(Icons.open_in_browser),
                 title: Text('Open in browser'),
+                dense: true,
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'download',
+              child: ListTile(
+                leading: Icon(Icons.download_outlined),
+                title: Text('Download'),
                 dense: true,
               ),
             ),

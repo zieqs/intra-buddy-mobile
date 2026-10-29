@@ -9,6 +9,7 @@ import '../../domain/entities/document_item.dart';
 import '../document_url_opener.dart';
 import '../preview_kind.dart';
 import '../providers/document_controller.dart';
+import '../save_document.dart';
 
 /// In-app preview for a student document.
 ///
@@ -111,12 +112,36 @@ class _DocumentPreviewScreenState extends ConsumerState<DocumentPreviewScreen> {
     }
   }
 
+  Future<void> _download() async {
+    final bytes = _bytes;
+    if (bytes == null) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final outcome = await saveDocumentToDevice(
+      fileName: downloadFileName(
+        widget.document.itemName,
+        widget.document.fileType,
+      ),
+      bytes: bytes,
+    );
+    if (!mounted) return;
+    messenger.showSnackBar(
+      SnackBar(content: Text(saveOutcomeMessage(outcome))),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.document.itemName, overflow: TextOverflow.ellipsis),
         actions: [
+          if (_bytes != null)
+            IconButton(
+              tooltip: 'Download',
+              icon: const Icon(Icons.download_outlined),
+              onPressed: _download,
+            ),
           IconButton(
             tooltip: 'Open in browser',
             icon: const Icon(Icons.open_in_browser),
