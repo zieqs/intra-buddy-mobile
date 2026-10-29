@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_controller.dart';
 import '../providers/dashboard_controller.dart';
+import '../widgets/journey_card.dart';
 
 class DashboardHome extends ConsumerWidget {
   const DashboardHome({super.key});
@@ -57,31 +58,27 @@ class DashboardHome extends ConsumerWidget {
             ),
             data: (data) => Column(
               children: [
+                JourneyCard(
+                  progress: data.journey,
+                  semesterStart: data.semesterStart,
+                  semesterEnd: data.semesterEnd,
+                  milestonesDone: data.completedMilestones,
+                  milestonesTotal: data.totalMilestones,
+                  onChecklist: () => context.go('/checklist'),
+                  onLogbook: () => context.push('/logbook'),
+                ),
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
                       child: _StatCard(
-                        title: 'Milestones',
-                        value:
-                            '${data.completedMilestones}/${data.totalMilestones}',
-                        color: context.primaryContainer,
-                        onTap: () => context.go('/checklist'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _StatCard(
-                        title: 'Applications',
+                        title: 'Job Applications',
                         value: '${data.jobApplications}',
                         color: context.secondaryContainer,
                         onTap: () => context.go('/jobs'),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
+                    const SizedBox(width: 12),
                     Expanded(
                       child: _StatCard(
                         title: 'Documents',
@@ -90,67 +87,8 @@ class DashboardHome extends ConsumerWidget {
                         onTap: () => context.go('/my-documents'),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _StatCard(
-                        title: 'Logbook',
-                        value: data.totalWeeks > 0
-                            ? '${(data.submittedWeeks / data.totalWeeks * 100).round()}%'
-                            : '0%',
-                        color: context.errorContainer,
-                        onTap: () => context.push('/logbook'),
-                      ),
-                    ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                /*Card(
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: () => context.push('/notifications'),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.notifications_outlined,
-                            color: AppColors.primary,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Notifications',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const Spacer(),
-                          if (data.unreadNotifications > 0)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.error,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                '${data.unreadNotifications}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.chevron_right,
-                            color: context.muted,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),*/
               ],
             ),
           ),

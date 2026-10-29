@@ -466,12 +466,16 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
 ### 10.1 Dashboard
 
 - **Screen:** `DashboardHome` (ConsumerWidget with RefreshIndicator)
-- **Provider:** `dashboardProvider` — `FutureProvider<DashboardData>` aggregating data from 5 Supabase tables in parallel
-- **Tables:** `student_checklists`, `job_applications`, `digital_wallet_items`, `weekly_logbook_tracking`, `notifications`
-- **UI:** Welcome greeting, stat cards (milestones, applications, documents, logbook %), notification badge card
+- **Provider:** `dashboardProvider` — `FutureProvider<DashboardData>` aggregating data from 4 Supabase tables in parallel, plus the student's semester dates
+- **Tables:** `student_checklists`, `job_applications`, `digital_wallet_items`, `weekly_logbook_tracking`, `semesters` (via `student_semesters`)
+- **UI:** Welcome greeting, then an **INTRA Journey card** with two stages:
+  - *Preparation* — milestone progress, tap through to Checklist
+  - *Internship* — date-driven 14-week strip (submitted / current / missed / upcoming), `Week N of 14`, counts and next deadline, tap through to Logbook
+  - Below it, Applications and Documents stat tiles
+- **Journey logic:** `computeJourneyProgress` in `presentation/journey_progress.dart` — pure, unit tested; a week is not missed on its due date
 - **Auto-refresh:** Watches `dashboardRefreshProvider` — a `Notifier<int>` bumped by every feature controller after mutations (toggle checklist, add job, upload document, submit logbook, etc.)
-- **States:** loading spinner, error card with retry, data with 4 stat cards + notif row
-- **Each card is tappable** — navigates to the relevant feature
+- **States:** loading spinner, error card with retry, data with journey card + 2 stat tiles
+- **Each stage/card is tappable** — navigates to the relevant feature
 
 ### 10.2 Checklist
 
