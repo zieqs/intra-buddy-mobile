@@ -5,6 +5,7 @@ class AppNotification {
   final String? type;
   final bool isRead;
   final DateTime createdAt;
+  final List<String> imagePaths;
 
   const AppNotification({
     required this.id,
@@ -13,14 +14,17 @@ class AppNotification {
     this.type,
     required this.isRead,
     required this.createdAt,
+    this.imagePaths = const [],
   });
 
-  AppNotification copyWith({bool? isRead}) => AppNotification(
-    id: id,
-    title: title,
-    body: body,
-    type: type,
-    isRead: isRead ?? this.isRead,
-    createdAt: createdAt,
-  );
+  AppNotification copyWith({bool? isRead, List<String>? imagePaths}) =>
+      AppNotification(
+        id: id,
+        title: title,
+        body: body,
+        type: type,
+        isRead: isRead ?? this.isRead,
+        createdAt: createdAt,
+        imagePaths: imagePaths ?? this.imagePaths,
+      );
 }

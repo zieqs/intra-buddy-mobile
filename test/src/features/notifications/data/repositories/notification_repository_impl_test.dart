@@ -46,6 +46,34 @@ void main() {
       expect(items.firstWhere((n) => n.id == 1).isRead, isFalse);
       expect(items.firstWhere((n) => n.id == 2).isRead, isTrue);
     });
+
+    test('parses broadcast image paths', () async {
+      when(() => dataSource.loadNotifications()).thenAnswer(
+        (_) async => [
+          {
+            ..._row(id: 1, isRead: false),
+            'image_paths': ['broadcast-images/a.png', 'broadcast-images/b.png'],
+          },
+        ],
+      );
+
+      final items = (await repository.loadNotifications()).getOrElse(() => []);
+
+      expect(items.single.imagePaths, [
+        'broadcast-images/a.png',
+        'broadcast-images/b.png',
+      ]);
+    });
+
+    test('defaults image paths to empty when the column is missing', () async {
+      when(
+        () => dataSource.loadNotifications(),
+      ).thenAnswer((_) async => [_row(id: 1, isRead: false)]);
+
+      final items = (await repository.loadNotifications()).getOrElse(() => []);
+
+      expect(items.single.imagePaths, isEmpty);
+    });
   });
 
   group('markAllAsRead', () {

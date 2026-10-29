@@ -14,6 +14,11 @@ NotificationModel _$NotificationModelFromJson(Map<String, dynamic> json) =>
       type: json['type'] as String?,
       isRead: json['is_read'] as bool,
       createdAt: DateTime.parse(json['created_at'] as String),
+      imagePaths:
+          (json['image_paths'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
     );
 
 Map<String, dynamic> _$NotificationModelToJson(NotificationModel instance) =>
@@ -24,4 +29,5 @@ Map<String, dynamic> _$NotificationModelToJson(NotificationModel instance) =>
       'type': instance.type,
       'is_read': instance.isRead,
       'created_at': instance.createdAt.toIso8601String(),
+      'image_paths': instance.imagePaths,
     };

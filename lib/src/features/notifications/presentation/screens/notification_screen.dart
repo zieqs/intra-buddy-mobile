@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/network/supabase_client_provider.dart';
 import '../../domain/entities/app_notification.dart';
 import '../providers/notification_controller.dart';
+import '../widgets/notification_image_strip.dart';
 
 class NotificationScreen extends ConsumerWidget {
   const NotificationScreen({super.key});
@@ -156,6 +158,13 @@ class _NotificationCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final supabase = ref.watch(supabaseClientProvider);
+    final imageUrls = notification.imagePaths
+        .map(
+          (path) => supabase.storage.from('broadcast-media').getPublicUrl(path),
+        )
+        .toList();
+
     return Dismissible(
       key: ValueKey(notification.id),
       direction: DismissDirection.endToStart,
@@ -220,6 +229,14 @@ class _NotificationCard extends ConsumerWidget {
                           notification.body!,
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(color: context.muted),
+                        ),
+                      ],
+                      if (imageUrls.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        NotificationImageStrip(
+                          imageUrls: imageUrls,
+                          onTap: (index) =>
+                              showNotificationImage(context, imageUrls, index),
                         ),
                       ],
                       const SizedBox(height: 4),

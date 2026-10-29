@@ -16,6 +16,9 @@ class NotificationModel {
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
 
+  @JsonKey(name: 'image_paths', defaultValue: <String>[])
+  final List<String> imagePaths;
+
   const NotificationModel({
     required this.id,
     this.title,
@@ -23,6 +26,7 @@ class NotificationModel {
     this.type,
     required this.isRead,
     required this.createdAt,
+    this.imagePaths = const [],
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) =>
@@ -36,5 +40,6 @@ class NotificationModel {
     type: type,
     isRead: isRead,
     createdAt: createdAt,
+    imagePaths: imagePaths,
   );
 }
