@@ -15,10 +15,12 @@ AppNotification _notification({bool isRead = false, String? body}) {
 }
 
 Widget _harness(
-  AppNotification notification, {
+  AppNotification? notification, {
   int unreadCount = 1,
   String? imageUrl,
   VoidCallback? onTap,
+  bool isLoading = false,
+  bool hasError = false,
 }) {
   return MaterialApp(
     home: Scaffold(
@@ -26,6 +28,8 @@ Widget _harness(
         notification: notification,
         unreadCount: unreadCount,
         imageUrl: imageUrl,
+        isLoading: isLoading,
+        hasError: hasError,
         onTap: onTap ?? () {},
       ),
     ),
@@ -69,6 +73,37 @@ void main() {
     await tester.pumpWidget(
       _harness(_notification(), onTap: () => tapped = true),
     );
+
+    await tester.tap(find.byType(LatestNotificationBanner));
+    await tester.pump();
+
+    expect(tapped, isTrue);
+  });
+
+  testWidgets('shows an empty state when the inbox is empty', (tester) async {
+    await tester.pumpWidget(_harness(null));
+
+    expect(find.text('No notifications'), findsOneWidget);
+    expect(find.text("You're all caught up"), findsOneWidget);
+  });
+
+  testWidgets('shows a loading state', (tester) async {
+    await tester.pumpWidget(_harness(null, isLoading: true));
+
+    expect(find.text('Loading notifications…'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+  });
+
+  testWidgets('shows an error state', (tester) async {
+    await tester.pumpWidget(_harness(null, hasError: true));
+
+    expect(find.text("Couldn't load notifications"), findsOneWidget);
+    expect(find.text('Open the inbox to try again'), findsOneWidget);
+  });
+
+  testWidgets('the empty state is still tappable', (tester) async {
+    var tapped = false;
+    await tester.pumpWidget(_harness(null, onTap: () => tapped = true));
 
     await tester.tap(find.byType(LatestNotificationBanner));
     await tester.pump();

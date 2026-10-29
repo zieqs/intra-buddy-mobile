@@ -17,11 +17,13 @@ class DashboardHome extends ConsumerWidget {
     final authCtrl = ref.watch(authControllerProvider);
     final dashboardAsync = ref.watch(dashboardProvider);
 
-    final notifications = ref.watch(notificationControllerProvider).value;
+    final notificationsAsync = ref.watch(notificationControllerProvider);
+    final notifications = notificationsAsync.value;
     final latest = notifications == null || notifications.isEmpty
         ? null
         : notifications.first;
     final unread = ref.watch(unreadNotificationCountProvider);
+    final hasLoadedNotifications = notificationsAsync.hasValue;
     final imageUrl = latest != null && latest.imagePaths.isNotEmpty
         ? ref
               .watch(supabaseClientProvider)
@@ -65,15 +67,15 @@ class DashboardHome extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          if (latest != null) ...[
-            LatestNotificationBanner(
-              notification: latest,
-              unreadCount: unread,
-              imageUrl: imageUrl,
-              onTap: () => context.push('/notifications'),
-            ),
-            const SizedBox(height: 16),
-          ],
+          LatestNotificationBanner(
+            notification: latest,
+            unreadCount: unread,
+            imageUrl: imageUrl,
+            isLoading: !hasLoadedNotifications && notificationsAsync.isLoading,
+            hasError: !hasLoadedNotifications && notificationsAsync.hasError,
+            onTap: () => context.push('/notifications'),
+          ),
+          const SizedBox(height: 16),
           dashboardAsync.when(
             loading: () => const Center(
               child: Padding(
