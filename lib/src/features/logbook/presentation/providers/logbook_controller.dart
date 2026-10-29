@@ -26,23 +26,36 @@ class LogbookController extends AsyncNotifier<List<LogbookWeek>> {
     return result.fold((failure) => throw failure, (weeks) => weeks);
   }
 
-  Future<void> toggleSubmitted(int id, bool submitted) async {
+  Future<bool> toggleSubmitted(int id, bool submitted) async {
+    final current = state.value;
+    if (current == null) return false;
+
+    final index = current.indexWhere((week) => week.id == id);
+    if (index == -1) return false;
+    if (current[index].isSubmitted == submitted) return true;
+
+    final target = current[index];
+    final optimistic = [...current];
+    optimistic[index] = LogbookWeek(
+      id: target.id,
+      weekNumber: target.weekNumber,
+      weekEndDate: target.weekEndDate,
+      isSubmitted: submitted,
+      submittedAt: submitted ? DateTime.now() : null,
+    );
+    state = AsyncData(optimistic);
+
     final repo = ref.read(logbookRepositoryProvider);
-    state = await AsyncValue.guard(() async {
-      final current = [...state.value ?? <LogbookWeek>[]];
-      final index = current.indexWhere((w) => w.id == id);
-      if (index != -1) {
-        current[index] = LogbookWeek(
-          id: current[index].id,
-          weekNumber: current[index].weekNumber,
-          weekEndDate: current[index].weekEndDate,
-          isSubmitted: submitted,
-          submittedAt: submitted ? DateTime.now() : null,
-        );
-      }
-      await repo.toggleSubmitted(id, submitted);
-      ref.read(dashboardRefreshProvider.notifier).trigger();
-      return current;
-    });
+    final result = await repo.toggleSubmitted(id, submitted);
+    return result.fold(
+      (_) {
+        state = AsyncData(current);
+        return false;
+      },
+      (_) {
+        ref.read(dashboardRefreshProvider.notifier).trigger();
+        return true;
+      },
+    );
   }
 }
