@@ -94,4 +94,66 @@ void main() {
       expect(result.isLeft(), isTrue);
     });
   });
+
+  group('archiveReadNotifications', () {
+    test('returns the number deleted', () async {
+      when(() => dataSource.archiveReadNotifications()).thenAnswer(
+        (_) async => [_row(id: 1, isRead: true), _row(id: 2, isRead: true)],
+      );
+
+      final result = await repository.archiveReadNotifications();
+
+      expect(result.getOrElse(() => -1), 2);
+    });
+
+    test('returns zero when nothing matched', () async {
+      when(
+        () => dataSource.archiveReadNotifications(),
+      ).thenAnswer((_) async => []);
+
+      final result = await repository.archiveReadNotifications();
+
+      expect(result.getOrElse(() => -1), 0);
+    });
+
+    test('returns a failure when the data source throws', () async {
+      when(
+        () => dataSource.archiveReadNotifications(),
+      ).thenThrow(Exception('offline'));
+
+      final result = await repository.archiveReadNotifications();
+
+      expect(result.isLeft(), isTrue);
+    });
+  });
+
+  group('archiveNotification', () {
+    test('succeeds when the server reports the deleted row', () async {
+      when(
+        () => dataSource.archiveNotification(1),
+      ).thenAnswer((_) async => [_row(id: 1, isRead: false)]);
+
+      final result = await repository.archiveNotification(1);
+
+      expect(result.isRight(), isTrue);
+    });
+
+    test('fails when the server deleted nothing', () async {
+      when(() => dataSource.archiveNotification(1)).thenAnswer((_) async => []);
+
+      final result = await repository.archiveNotification(1);
+
+      expect(result.isLeft(), isTrue);
+    });
+
+    test('fails when the data source throws', () async {
+      when(
+        () => dataSource.archiveNotification(1),
+      ).thenThrow(Exception('offline'));
+
+      final result = await repository.archiveNotification(1);
+
+      expect(result.isLeft(), isTrue);
+    });
+  });
 }

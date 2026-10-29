@@ -14,6 +14,7 @@ class NotificationRemoteDataSource {
         .from('notifications')
         .select()
         .eq('recipient_id', _userId)
+        .isFilter('archived_at', null)
         .order('created_at', ascending: false);
   }
 
@@ -29,7 +30,21 @@ class NotificationRemoteDataSource {
     await supabase.from('notifications').update({'is_read': true}).eq('id', id);
   }
 
-  Future<void> deleteNotification(int id) async {
-    await supabase.from('notifications').delete().eq('id', id);
+  Future<List<Map<String, dynamic>>> archiveReadNotifications() {
+    return supabase
+        .from('notifications')
+        .update({'archived_at': DateTime.now().toIso8601String()})
+        .eq('is_read', true)
+        .isFilter('archived_at', null)
+        .select('id');
+  }
+
+  Future<List<Map<String, dynamic>>> archiveNotification(int id) {
+    return supabase
+        .from('notifications')
+        .update({'archived_at': DateTime.now().toIso8601String()})
+        .eq('id', id)
+        .isFilter('archived_at', null)
+        .select('id');
   }
 }

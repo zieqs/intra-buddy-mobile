@@ -44,9 +44,24 @@ class NotificationRepositoryImpl implements NotificationRepository {
   }
 
   @override
-  Future<Result<void>> deleteNotification(int id) async {
+  Future<Result<int>> archiveReadNotifications() async {
     try {
-      await dataSource.deleteNotification(id);
+      final archived = await dataSource.archiveReadNotifications();
+      return Right(archived.length);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Result<void>> archiveNotification(int id) async {
+    try {
+      final archived = await dataSource.archiveNotification(id);
+      if (archived.isEmpty) {
+        return const Left(
+          ServerFailure('Notification was not archived (RLS or missing row)'),
+        );
+      }
       return const Right(null);
     } catch (e) {
       return Left(ServerFailure(e.toString()));

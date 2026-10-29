@@ -13,6 +13,7 @@ class NotificationScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notifState = ref.watch(notificationControllerProvider);
     final unread = ref.watch(unreadNotificationCountProvider);
+    final readCount = (notifState.value?.length ?? 0) - unread;
 
     return Scaffold(
       appBar: AppBar(
@@ -25,6 +26,21 @@ class NotificationScreen extends ConsumerWidget {
                   .markAllAsRead(),
               icon: const Icon(Icons.done_all, size: 18),
               label: const Text('Mark all read'),
+            ),
+          if (readCount > 0)
+            PopupMenuButton<String>(
+              tooltip: 'More options',
+              onSelected: (value) {
+                if (value == 'archive_read') {
+                  _confirmArchiveRead(context, ref);
+                }
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem(
+                  value: 'archive_read',
+                  child: Text('Archive read'),
+                ),
+              ],
             ),
         ],
       ),
@@ -104,6 +120,43 @@ class NotificationScreen extends ConsumerWidget {
     );
   }
 
+  Future<void> _confirmArchiveRead(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Archive read notifications?'),
+        content: const Text(
+          "This removes notifications you've already read from your inbox. They are kept for INTRA records. Unread notifications stay.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Archive'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final archived = await ref
+        .read(notificationControllerProvider.notifier)
+        .archiveReadNotifications();
+    if (!context.mounted) return;
+
+    final message = archived == null
+        ? 'Could not archive notifications. Please try again.'
+        : archived == 0
+        ? 'No read notifications to archive.'
+        : 'Archived $archived read notification${archived == 1 ? '' : 's'}.';
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
   List<_NotificationGroup> _groupNotifications(List<AppNotification> items) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -172,15 +225,31 @@ class _NotificationCard extends ConsumerWidget {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
-          color: AppColors.error,
+          color: AppColors.primary,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: const Icon(Icons.archive_outlined, color: Colors.white),
       ),
       onDismissed: (_) {
         ref
             .read(notificationControllerProvider.notifier)
-            .deleteNotification(notification.id);
+            .removeArchived(notification.id);
+      },
+      confirmDismiss: (_) async {
+        final messenger = ScaffoldMessenger.of(context);
+        final archived = await ref
+            .read(notificationControllerProvider.notifier)
+            .archiveNotification(notification.id);
+        if (!archived && context.mounted) {
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Could not archive the notification. Please try again.',
+              ),
+            ),
+          );
+        }
+        return archived;
       },
       child: Card(
         margin: const EdgeInsets.only(bottom: 4),

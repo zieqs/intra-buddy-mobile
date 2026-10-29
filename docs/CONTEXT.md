@@ -538,8 +538,10 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
 - **Table:** `notifications` — personal messages plus one per-student copy of each broadcast
 - **Broadcasts:** `broadcast_messages` stays the source of truth. Database triggers fan a copy out to every student when `target_roles` includes `students_all`, sync title/body/images when the broadcast is edited, and delete the copies when the broadcast is deleted.
 - **Images:** broadcast images are copied into `image_paths`; the card shows up to three thumbnails (public `broadcast-media` bucket) and opens a zoomable full-screen viewer.
-- **Logic:** Loading never mutates read state. Unread items show a dot + bold title; the shell bell shows an unread-count badge. Tapping an item marks it read; "Mark all read" clears the rest. Swipe-to-delete supported. Live updates arrive via Supabase Realtime (Postgres Changes on `notifications`, filtered by `recipient_id`), so new broadcasts update the badge without restarting the app.
+- **Logic:** Loading never mutates read state. Unread items show a dot + bold title; the shell bell shows an unread-count badge. Tapping an item marks it read; "Mark all read" clears the rest. Swipe-to-archive sets `archived_at` after the server confirms; a failed archive keeps the row with a SnackBar. Archived rows are filtered out of the inbox but retained for INTRA delivery records. Live updates arrive via Supabase Realtime (Postgres Changes on `notifications`, filtered by `recipient_id`), so new broadcasts update the badge without restarting the app.
 - **Grouping:** Today / This Week / Earlier (computed locally from `created_at`)
+- **Archive read:** app-bar overflow action archives every read notification in one call (unread items are kept), with a confirmation dialog and a count in the SnackBar. Rows are retained with `archived_at` for the INTRA office; nothing is hard-deleted by students.
+- **Coordinator access:** coordinators can select broadcast copies (including read/archived state) for delivery records; personal notifications remain private to their recipient.
 - **States:** loading, error, empty ("You're all caught up!"), grouped list
 
 ### 10.7 Logbook
@@ -744,6 +746,7 @@ All providers are defined manually (no Riverpod code generation). Repository pro
 | scheduled_for | timestamptz | NULL | |
 | broadcast_id | int8 | FK → broadcast_messages.id | |
 | image_paths | text[] | NOT NULL | '{}' |
+| archived_at | timestamptz | NULL | |
 
 #### `broadcast_messages`
 | Column | Type | Constraints | Default |

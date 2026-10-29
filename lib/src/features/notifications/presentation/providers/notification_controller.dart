@@ -98,15 +98,38 @@ class NotificationController extends AsyncNotifier<List<AppNotification>> {
     );
   }
 
-  Future<void> deleteNotification(int id) async {
+  /// Archives every read notification. Returns the number archived, or null on
+  /// failure. Unread notifications are never touched.
+  Future<int?> archiveReadNotifications() async {
+    final current = state.value;
+    if (current == null) return null;
+
+    final readCount = current.where((n) => n.isRead).length;
+    if (readCount == 0) return 0;
+
     final repo = ref.read(notificationRepositoryProvider);
-    final result = await repo.deleteNotification(id);
-    result.fold((failure) => state = AsyncError(failure, StackTrace.current), (
-      _,
-    ) {
-      final current = state.value ?? [];
-      state = AsyncData(current.where((n) => n.id != id).toList());
+    final result = await repo.archiveReadNotifications();
+    return result.fold((_) => null, (archived) {
+      state = AsyncData(current.where((n) => !n.isRead).toList());
       ref.read(dashboardRefreshProvider.notifier).trigger();
+      return archived;
     });
+  }
+
+  Future<bool> archiveNotification(int id) async {
+    final repo = ref.read(notificationRepositoryProvider);
+    final result = await repo.archiveNotification(id);
+    return result.fold((_) => false, (_) => true);
+  }
+
+  /// Removes an already-archived notification from the local list.
+  ///
+  /// Kept separate from [archiveNotification] so the swipe animation can finish
+  /// before the list rebuilds without the item.
+  void removeArchived(int id) {
+    final current = state.value;
+    if (current == null) return;
+    state = AsyncData(current.where((n) => n.id != id).toList());
+    ref.read(dashboardRefreshProvider.notifier).trigger();
   }
 }

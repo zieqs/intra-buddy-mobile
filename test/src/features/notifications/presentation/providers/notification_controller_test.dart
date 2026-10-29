@@ -16,8 +16,12 @@ class _FakeNotificationRepository implements NotificationRepository {
 
   List<AppNotification> items;
   bool failWrites = false;
+  bool failArchiveOne = false;
+  bool failArchiveRead = false;
   int markAllCalls = 0;
   int loadCalls = 0;
+  int archiveOneCalls = 0;
+  int archiveReadCalls = 0;
   final List<int> markedIds = [];
 
   @override
@@ -45,8 +49,16 @@ class _FakeNotificationRepository implements NotificationRepository {
   }
 
   @override
-  Future<Result<void>> deleteNotification(int id) async {
-    items = items.where((n) => n.id != id).toList(growable: false);
+  Future<Result<int>> archiveReadNotifications() async {
+    archiveReadCalls++;
+    if (failArchiveRead) return const Left(ServerFailure('clear failed'));
+    return Right(items.where((n) => n.isRead).length);
+  }
+
+  @override
+  Future<Result<void>> archiveNotification(int id) async {
+    archiveOneCalls++;
+    if (failArchiveOne) return const Left(ServerFailure('not deleted'));
     return const Right(null);
   }
 }
@@ -210,6 +222,108 @@ void main() {
 
       expect(repo.loadCalls, 2);
       expect(container.read(unreadNotificationCountProvider), 3);
+    });
+  });
+
+  group('archiveNotification', () {
+    test(
+      'reports success and leaves removal to the dismiss animation',
+      () async {
+        await setUpContainer();
+
+        final deleted = await container
+            .read(notificationControllerProvider.notifier)
+            .archiveNotification(1);
+
+        expect(deleted, isTrue);
+        expect(repo.archiveOneCalls, 1);
+        expect(
+          container
+              .read(notificationControllerProvider)
+              .requireValue
+              .any((n) => n.id == 1),
+          isTrue,
+        );
+      },
+    );
+
+    test('removeArchived drops the item locally', () async {
+      await setUpContainer();
+
+      container.read(notificationControllerProvider.notifier).removeArchived(1);
+
+      final items = container.read(notificationControllerProvider).requireValue;
+      expect(items.any((n) => n.id == 1), isFalse);
+      expect(container.read(unreadNotificationCountProvider), 1);
+    });
+
+    test('reports failure and keeps the item', () async {
+      await setUpContainer();
+      repo.failArchiveOne = true;
+
+      final deleted = await container
+          .read(notificationControllerProvider.notifier)
+          .archiveNotification(1);
+
+      expect(deleted, isFalse);
+      expect(container.read(notificationControllerProvider).hasError, isFalse);
+      expect(
+        container
+            .read(notificationControllerProvider)
+            .requireValue
+            .any((n) => n.id == 1),
+        isTrue,
+      );
+    });
+  });
+
+  group('archiveReadNotifications', () {
+    test('removes read items and keeps unread ones', () async {
+      await setUpContainer();
+
+      final cleared = await container
+          .read(notificationControllerProvider.notifier)
+          .archiveReadNotifications();
+
+      expect(cleared, 1);
+      expect(repo.archiveReadCalls, 1);
+
+      final items = container.read(notificationControllerProvider).requireValue;
+      expect(items.any((n) => n.id == 3), isFalse);
+      expect(items.where((n) => !n.isRead).length, 2);
+    });
+
+    test(
+      'returns 0 without calling the repository when nothing is read',
+      () async {
+        await setUpContainer();
+        repo.items = repo.items.map((n) => n.copyWith(isRead: false)).toList();
+        container.invalidate(notificationControllerProvider);
+        await container.read(notificationControllerProvider.future);
+
+        final cleared = await container
+            .read(notificationControllerProvider.notifier)
+            .archiveReadNotifications();
+
+        expect(cleared, 0);
+        expect(repo.archiveReadCalls, 0);
+      },
+    );
+
+    test('returns null and keeps the list when the write fails', () async {
+      await setUpContainer();
+      repo.failArchiveRead = true;
+
+      final cleared = await container
+          .read(notificationControllerProvider.notifier)
+          .archiveReadNotifications();
+
+      expect(cleared, isNull);
+      expect(container.read(notificationControllerProvider).hasError, isFalse);
+      expect(
+        container.read(notificationControllerProvider).requireValue.length,
+        3,
+      );
     });
   });
 
