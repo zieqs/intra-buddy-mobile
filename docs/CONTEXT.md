@@ -468,7 +468,7 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
 - **Screen:** `DashboardHome` (ConsumerWidget with RefreshIndicator)
 - **Provider:** `dashboardProvider` — `FutureProvider<DashboardData>` aggregating data from 4 Supabase tables in parallel, plus the student's semester dates
 - **Tables:** `student_checklists`, `job_applications`, `digital_wallet_items`, `weekly_logbook_tracking`, `semesters` (via `student_semesters`)
-- **UI:** Welcome greeting, then an **INTRA Journey card** with two stages:
+- **UI:** Welcome greeting, a **Latest notification** banner (newest non-archived item with unread count, tap → Notifications), then an **INTRA Journey card** with two stages:
   - *Preparation* — milestone progress, tap through to Checklist
   - *Internship* — date-driven 14-week strip (submitted / current / missed / upcoming), `Week N of 14`, counts and next deadline, tap through to Logbook
   - Below it, Applications and Documents stat tiles

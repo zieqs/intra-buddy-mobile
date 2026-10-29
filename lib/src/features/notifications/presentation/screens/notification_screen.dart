@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/network/supabase_client_provider.dart';
 import '../../domain/entities/app_notification.dart';
+import '../notification_time.dart';
 import '../providers/notification_controller.dart';
 import '../widgets/notification_image_strip.dart';
 
@@ -310,7 +311,7 @@ class _NotificationCard extends ConsumerWidget {
                       ],
                       const SizedBox(height: 4),
                       Text(
-                        _timeAgo(notification.createdAt),
+                        timeAgo(notification.createdAt),
                         style: Theme.of(
                           context,
                         ).textTheme.bodySmall?.copyWith(color: context.muted),
@@ -324,28 +325,5 @@ class _NotificationCard extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  String _timeAgo(DateTime date) {
-    final diff = DateTime.now().difference(date);
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${date.day} ${months[date.month - 1]}';
   }
 }

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/network/supabase_client_provider.dart';
 import '../../../auth/presentation/providers/auth_controller.dart';
+import '../../../notifications/presentation/providers/notification_controller.dart';
+import '../../../notifications/presentation/widgets/latest_notification_banner.dart';
 import '../providers/dashboard_controller.dart';
 import '../widgets/journey_card.dart';
 
@@ -14,10 +17,29 @@ class DashboardHome extends ConsumerWidget {
     final authCtrl = ref.watch(authControllerProvider);
     final dashboardAsync = ref.watch(dashboardProvider);
 
+    final notifications = ref.watch(notificationControllerProvider).value;
+    final latest = notifications == null || notifications.isEmpty
+        ? null
+        : notifications.first;
+    final unread = ref.watch(unreadNotificationCountProvider);
+    final imageUrl = latest != null && latest.imagePaths.isNotEmpty
+        ? ref
+              .watch(supabaseClientProvider)
+              .storage
+              .from('broadcast-media')
+              .getPublicUrl(latest.imagePaths.first)
+        : null;
+
     final userName = authCtrl.value?.fullName ?? 'Student';
 
     return RefreshIndicator(
-      onRefresh: () => ref.refresh(dashboardProvider.future),
+      onRefresh: () async {
+        ref.invalidate(notificationControllerProvider);
+        await Future.wait([
+          ref.refresh(dashboardProvider.future),
+          ref.read(notificationControllerProvider.future),
+        ]);
+      },
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -43,6 +65,15 @@ class DashboardHome extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
+          if (latest != null) ...[
+            LatestNotificationBanner(
+              notification: latest,
+              unreadCount: unread,
+              imageUrl: imageUrl,
+              onTap: () => context.push('/notifications'),
+            ),
+            const SizedBox(height: 16),
+          ],
           dashboardAsync.when(
             loading: () => const Center(
               child: Padding(
