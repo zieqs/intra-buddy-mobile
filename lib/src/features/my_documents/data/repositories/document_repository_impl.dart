@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/document_item.dart';
@@ -16,6 +18,16 @@ class DocumentRepositoryImpl implements DocumentRepository {
       final data = await dataSource.loadDocuments();
       final items = data.map((json) => DocumentModel.fromJson(json)).toList();
       return Right(items.map((e) => e.toEntity()).toList());
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Result<Uint8List>> downloadDocument(String storagePath) async {
+    try {
+      final bytes = await dataSource.downloadDocument(storagePath);
+      return Right(bytes);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }

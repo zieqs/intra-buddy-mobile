@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart' show Uint8List;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intra_buddy_mobile_v2/src/core/errors/failures.dart';
@@ -9,14 +10,23 @@ import 'package:intra_buddy_mobile_v2/src/features/my_documents/presentation/pro
 class _FakeDocumentRepository implements DocumentRepository {
   final List<DocumentItem> items = [];
   bool failUploads = false;
+  bool failDownloads = false;
   String failureMessage = 'new row violates row-level security policy';
   int uploadCalls = 0;
   int loadCalls = 0;
+  int downloadCalls = 0;
 
   @override
   Future<Result<List<DocumentItem>>> loadDocuments() async {
     loadCalls++;
     return Right(items);
+  }
+
+  @override
+  Future<Result<Uint8List>> downloadDocument(String storagePath) async {
+    downloadCalls++;
+    if (failDownloads) return Left(ServerFailure(failureMessage));
+    return Right(Uint8List.fromList([37, 80, 68, 70]));
   }
 
   @override
@@ -91,6 +101,28 @@ void main() {
           .uploadDocument(filePath: '/cache/big.pdf', itemName: 'Big');
 
       expect(message, 'File exceeds the 5 MB limit.');
+    });
+  });
+
+  group('downloadDocument', () {
+    test('returns the file bytes', () async {
+      final bytes = await container
+          .read(documentControllerProvider.notifier)
+          .downloadDocument('uid/CV.pdf');
+
+      expect(bytes, [37, 80, 68, 70]);
+      expect(repo.downloadCalls, 1);
+    });
+
+    test('throws a failure the preview screen can show', () async {
+      repo.failDownloads = true;
+
+      await expectLater(
+        container
+            .read(documentControllerProvider.notifier)
+            .downloadDocument('uid/CV.pdf'),
+        throwsA(isA<Failure>()),
+      );
     });
   });
 }

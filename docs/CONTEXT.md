@@ -82,6 +82,7 @@ Both apps share the same Supabase backend (Postgres, Auth, Realtime, Storage).
 | `url_launcher` | ^6.3.1 | Open signed URLs externally |
 | `flutter_dotenv` | ^6.0.1 | Environment variables from `.env` |
 | `google_fonts` | ^6.2.1 | Google Fonts (Inter) |
+| `pdfx` | ^2.11.0 | In-app PDF rendering (native OS engine) |
 
 ### Dev Dependencies
 
@@ -519,7 +520,8 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
 - **Storage bucket:** `student-documents`
 - **Upload:** Supports `image_picker` (gallery) + `file_picker` (any file), 5 MB limit
 - **Storage path (object key):** `{userId}/{timestamp}.{ext}` — the bucket name is not part of the key
-- **View:** Generates 60-second signed URL, opens via `url_launcher`
+- **Preview:** Downloads the bytes through the authenticated client (no signed URL) and renders PDFs in-app with `pdfx`; images render with `Image.memory`
+- **Open in browser:** Generates a 300-second signed URL and opens it externally
 - **Delete:** Removes both storage file and DB row (with confirmation dialog)
 - **States:** loading, error, empty, data with file type icons (PDF red, DOC blue, image green, etc.)
 - **Upload flow:** Choose source → pick file → name dialog → upload

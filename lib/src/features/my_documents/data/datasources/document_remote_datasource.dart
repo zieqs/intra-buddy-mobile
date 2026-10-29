@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -60,6 +61,10 @@ class DocumentRemoteDataSource {
         .single();
 
     return response;
+  }
+
+  Future<Uint8List> downloadDocument(String storagePath) {
+    return supabase.storage.from('student-documents').download(storagePath);
   }
 
   Future<String> getViewUrl(String storagePath) async {

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/document_item.dart';
 import '../../domain/repositories/document_repository.dart';
@@ -52,6 +54,12 @@ class DocumentController extends AsyncNotifier<List<DocumentItem>> {
       return 'File exceeds the 5 MB limit.';
     }
     return 'Could not upload. Please try again.';
+  }
+
+  Future<Uint8List> downloadDocument(String storagePath) async {
+    final repo = ref.read(documentRepositoryProvider);
+    final result = await repo.downloadDocument(storagePath);
+    return result.fold((failure) => throw failure, (bytes) => bytes);
   }
 
   Future<String> getViewUrl(String storagePath) async {

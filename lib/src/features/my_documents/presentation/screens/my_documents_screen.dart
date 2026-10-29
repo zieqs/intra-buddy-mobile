@@ -6,6 +6,7 @@ import '../../../../app/theme/app_colors.dart';
 import '../../domain/entities/document_item.dart';
 import '../document_url_opener.dart';
 import '../providers/document_controller.dart';
+import 'document_preview_screen.dart';
 
 class MyDocumentsScreen extends ConsumerWidget {
   const MyDocumentsScreen({super.key});
@@ -245,7 +246,13 @@ class _DocumentCard extends ConsumerWidget {
         ),
         trailing: PopupMenuButton<String>(
           onSelected: (value) async {
-            if (value == 'view') {
+            if (value == 'preview') {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => DocumentPreviewScreen(document: item),
+                ),
+              );
+            } else if (value == 'browser') {
               try {
                 final url = await ref
                     .read(documentControllerProvider.notifier)
@@ -297,10 +304,18 @@ class _DocumentCard extends ConsumerWidget {
           },
           itemBuilder: (context) => [
             const PopupMenuItem(
-              value: 'view',
+              value: 'preview',
               child: ListTile(
                 leading: Icon(Icons.visibility),
-                title: Text('View'),
+                title: Text('Preview'),
+                dense: true,
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'browser',
+              child: ListTile(
+                leading: Icon(Icons.open_in_browser),
+                title: Text('Open in browser'),
                 dense: true,
               ),
             ),
