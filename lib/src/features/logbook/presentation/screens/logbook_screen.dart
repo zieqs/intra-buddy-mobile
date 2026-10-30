@@ -101,9 +101,12 @@ class _LogbookScreenState extends ConsumerState<LogbookScreen>
         }
 
         final summary = buildLogbookSummary(weeks, DateTime.now());
+        final start = journey?.semesterStart;
+        final beforeStart = start != null && DateTime.now().isBefore(start);
         return LogbookView(
           summary: summary,
           streak: streak,
+          canSubmit: journey != null && !beforeStart,
           userName: userName,
           bell: const NotificationBell(),
           onProfile: () => context.push('/profile'),

@@ -43,4 +43,36 @@ void main() {
     await tester.tap(find.text('Mark submitted'));
     expect(tapped?.week.weekNumber, 7);
   });
+
+  testWidgets('does not allow marking before the semester starts', (tester) async {
+    final weeks = List.generate(12, (index) {
+      final number = index + 1;
+      return journeyWeek(
+        number,
+        DateTime(2026, 9, 18).add(Duration(days: 7 * number)),
+      );
+    });
+    final summary = buildLogbookSummary(weeks, DateTime(2026, 10, 31));
+    var tapped = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: LogbookView(
+          summary: summary,
+          streak: 0,
+          userName: 'Aisyah',
+          bell: const SizedBox(),
+          onProfile: () {},
+          onWeekTap: (_) => tapped = true,
+          onRefresh: () async {},
+          canSubmit: false,
+        ),
+      ),
+    );
+
+    expect(find.text('Not started yet'), findsOneWidget);
+    await tester.tap(find.text('Not started yet'));
+    expect(tapped, isFalse);
+  });
 }

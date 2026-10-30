@@ -15,6 +15,7 @@ class LogbookView extends StatelessWidget {
     required this.onProfile,
     required this.onWeekTap,
     required this.onRefresh,
+    this.canSubmit = true,
   });
 
   final LogbookSummary summary;
@@ -24,6 +25,7 @@ class LogbookView extends StatelessWidget {
   final VoidCallback onProfile;
   final ValueChanged<LogbookWeekInfo> onWeekTap;
   final Future<void> Function() onRefresh;
+  final bool canSubmit;
 
   @override
   Widget build(BuildContext context) {
@@ -101,6 +103,7 @@ class LogbookView extends StatelessWidget {
             sliver: SliverToBoxAdapter(
               child: _ThisWeekCard(
                 info: current,
+                canSubmit: canSubmit,
                 onTap: () => onWeekTap(current),
               ),
             ),
@@ -134,7 +137,11 @@ class LogbookView extends StatelessWidget {
                   )
                 else
                   for (final info in others)
-                    _WeekRow(info: info, onTap: () => onWeekTap(info)),
+                    _WeekRow(
+                      info: info,
+                      canSubmit: canSubmit,
+                      onTap: () => onWeekTap(info),
+                    ),
               ],
             ),
           ),
@@ -161,14 +168,20 @@ class LogbookView extends StatelessWidget {
 }
 
 class _ThisWeekCard extends StatelessWidget {
-  const _ThisWeekCard({required this.info, required this.onTap});
+  const _ThisWeekCard({
+    required this.info,
+    required this.onTap,
+    required this.canSubmit,
+  });
 
   final LogbookWeekInfo info;
   final VoidCallback onTap;
+  final bool canSubmit;
 
   @override
   Widget build(BuildContext context) {
     final submitted = info.week.isSubmitted;
+    final enabled = canSubmit && (submitted || info.canSubmit);
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -215,8 +228,12 @@ class _ThisWeekCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           PrimaryButton(
-            label: submitted ? 'Undo submission' : 'Mark submitted',
-            onPressed: submitted || info.canSubmit ? onTap : null,
+            label: submitted
+                ? 'Undo submission'
+                : canSubmit
+                ? 'Mark submitted'
+                : 'Not started yet',
+            onPressed: enabled ? onTap : null,
           ),
         ],
       ),
@@ -225,10 +242,15 @@ class _ThisWeekCard extends StatelessWidget {
 }
 
 class _WeekRow extends StatelessWidget {
-  const _WeekRow({required this.info, required this.onTap});
+  const _WeekRow({
+    required this.info,
+    required this.onTap,
+    required this.canSubmit,
+  });
 
   final LogbookWeekInfo info;
   final VoidCallback onTap;
+  final bool canSubmit;
 
   @override
   Widget build(BuildContext context) {
@@ -236,7 +258,7 @@ class _WeekRow extends StatelessWidget {
     final missed = info.state == LogbookWeekState.missed;
     final current = info.state == LogbookWeekState.current ||
         info.state == LogbookWeekState.dueSoon;
-    final interactive = submitted || info.canSubmit;
+    final interactive = canSubmit && (submitted || info.canSubmit);
 
     final background = submitted
         ? context.blue
