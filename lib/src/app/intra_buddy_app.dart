@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'navigation_keys.dart';
+import 'notification_navigation.dart';
 import 'startup_intent.dart';
 import 'theme/app_theme.dart';
 import 'router.dart';
@@ -16,9 +16,7 @@ class IntraBuddyApp extends ConsumerWidget {
     if (StartupIntent.openLogbook) {
       StartupIntent.openLogbook = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final navContext = appRootNavigatorKey.currentContext;
-        if (navContext == null) return;
-        GoRouter.of(navContext).go('/logbook');
+        openLogbookFromNotification(appRootNavigatorKey);
       });
     }
 

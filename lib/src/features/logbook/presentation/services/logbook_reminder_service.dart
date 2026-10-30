@@ -1,10 +1,10 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
-import 'package:go_router/go_router.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../../../app/navigation_keys.dart';
+import '../../../../app/notification_navigation.dart';
 import '../../../../app/startup_intent.dart';
 import '../logbook_reminder_planner.dart';
 
@@ -138,8 +138,6 @@ class LogbookReminderService {
 
   void _onNotificationTap(NotificationResponse response) {
     if (response.payload != 'logbook') return;
-    final context = appRootNavigatorKey.currentContext;
-    if (context == null) return;
-    GoRouter.of(context).push('/logbook');
+    openLogbookFromNotification(appRootNavigatorKey);
   }
 }
