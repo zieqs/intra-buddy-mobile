@@ -54,4 +54,25 @@ void main() {
     await tester.tap(find.byIcon(Icons.arrow_back_rounded));
     expect(backs, 1);
   });
+
+  testWidgets('opens the logbook from the streak pill', (tester) async {
+    var taps = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: Scaffold(
+          body: BuddyTopBar(
+            brand: 'INTRA BUDDY',
+            streak: 6,
+            userName: 'Aisyah',
+            bell: const SizedBox(),
+            onProfile: () {},
+            onStreakTap: () => taps++,
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('6'));
+    expect(taps, 1);
+  });
 }

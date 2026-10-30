@@ -144,4 +144,15 @@ void main() {
     );
     expect(homeHeadline(after), 'You did it.');
   });
+
+  test('invites a first streak when none exists', () {
+    final journey = buildJourney(
+      checklist: const [],
+      weeks: _weeks12(),
+      semesterStart: DateTime(2026, 9, 18),
+      semesterEnd: DateTime(2027, 1, 31),
+      now: DateTime(2026, 10, 31),
+    );
+    expect(homeSubline(journey), contains('start a streak'));
+  });
 }

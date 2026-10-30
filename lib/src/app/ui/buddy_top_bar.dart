@@ -12,6 +12,7 @@ class BuddyTopBar extends StatelessWidget {
     required this.bell,
     required this.onProfile,
     this.onBack,
+    this.onStreakTap,
   });
 
   final String brand;
@@ -20,6 +21,7 @@ class BuddyTopBar extends StatelessWidget {
   final Widget bell;
   final VoidCallback onProfile;
   final VoidCallback? onBack;
+  final VoidCallback? onStreakTap;
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +92,18 @@ class BuddyTopBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 4),
-          StreakBadge(streak: streak, compact: true),
+          if (onStreakTap != null)
+            Semantics(
+              button: true,
+              label: 'Open logbook',
+              child: InkWell(
+                onTap: onStreakTap,
+                borderRadius: BorderRadius.circular(AppRadii.node),
+                child: StreakBadge(streak: streak, compact: true),
+              ),
+            )
+          else
+            StreakBadge(streak: streak, compact: true),
           const SizedBox(width: 2),
           bell,
           const SizedBox(width: 2),

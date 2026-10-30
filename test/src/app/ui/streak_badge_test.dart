@@ -23,4 +23,14 @@ void main() {
     );
     expect(find.text('Start a streak'), findsOneWidget);
   });
+
+  testWidgets('compact mode shows 0 instead of the call to action', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: StreakBadge(streak: 0, compact: true)),
+      ),
+    );
+    expect(find.text('0'), findsOneWidget);
+    expect(find.text('Start a streak'), findsNothing);
+  });
 }

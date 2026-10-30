@@ -30,6 +30,7 @@ class JobsScreen extends ConsumerWidget {
       userName: userName,
       bell: const NotificationBell(),
       onProfile: () => context.push('/profile'),
+      onStreakTap: () => context.go('/logbook'),
     );
 
     if (items == null) {
@@ -70,6 +71,7 @@ class JobsScreen extends ConsumerWidget {
       onAdd: () => showJobForm(context),
       onEdit: (item) => showJobForm(context, existing: item),
       onDelete: (item) => _confirmDelete(context, ref, item),
+      onStreakTap: () => context.go('/logbook'),
       onRefresh: () async {
         ref.invalidate(jobControllerProvider);
         await ref.read(jobControllerProvider.future);

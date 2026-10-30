@@ -39,6 +39,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       userName: userName,
       bell: const NotificationBell(),
       onProfile: () => context.push('/profile'),
+      onStreakTap: () => context.go('/logbook'),
     );
 
     if (journey == null) {

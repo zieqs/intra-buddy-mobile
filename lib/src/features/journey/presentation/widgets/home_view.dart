@@ -39,6 +39,7 @@ class HomeView extends StatelessWidget {
       userName: userName,
       bell: bell,
       onProfile: onProfile,
+      onStreakTap: onLogbook,
     );
 
     if (journey.isEmpty) {
@@ -153,39 +154,7 @@ class HomeView extends StatelessWidget {
             ),
           ),
         ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.xl,
-            0,
-            AppSpacing.xl,
-            AppSpacing.xxxl,
-          ),
-          sliver: SliverToBoxAdapter(
-            child: Container(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: context.card,
-                borderRadius: BorderRadius.circular(AppRadii.card),
-                border: Border.all(color: context.line, width: 1.5),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  StreakBadge(streak: journey.streak, compact: true),
-                  const SizedBox(height: 6),
-                  Text(
-                    journey.streak == 0
-                        ? 'Submit this week to start a streak.'
-                        : '${journey.streak}-week streak · every logbook on time.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: context.muted,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxxl)),
       ],
     );
   }

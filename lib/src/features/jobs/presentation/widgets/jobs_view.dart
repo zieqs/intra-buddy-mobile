@@ -17,6 +17,7 @@ class JobsView extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onRefresh,
+    this.onStreakTap,
   });
 
   final List<JobApplication> items;
@@ -28,6 +29,7 @@ class JobsView extends StatelessWidget {
   final ValueChanged<JobApplication> onEdit;
   final ValueChanged<JobApplication> onDelete;
   final Future<void> Function() onRefresh;
+  final VoidCallback? onStreakTap;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +39,7 @@ class JobsView extends StatelessWidget {
       userName: userName,
       bell: bell,
       onProfile: onProfile,
+      onStreakTap: onStreakTap,
     );
 
     if (items.isEmpty) {

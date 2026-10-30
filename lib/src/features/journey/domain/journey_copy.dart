@@ -41,14 +41,25 @@ String homeSubline(Journey journey) {
       .length ??
       0;
   final current = journey.currentWeek;
+  final streakText = journey.streak > 0
+      ? '${journey.streak}-week streak'
+      : 'submit this week to start a streak';
+
   if (weeks > 0 && current != null) {
     final left = weeks - current.weekNumber!;
-    if (left <= 0) return 'Final week';
-    return '$left weeks to go · keep the streak alive';
+    if (left <= 0) return 'Final week · $streakText';
+    return '$left weeks to go · $streakText';
   }
 
   final left = journey.totalNodes - journey.completedNodes;
-  return '$left ${left == 1 ? 'milestone' : 'milestones'} left';
+  final unit = weeks > 0
+      ? (left == 1 ? 'step' : 'steps')
+      : (left == 1 ? 'milestone' : 'milestones');
+  final base = '$left $unit left';
+  if (journey.streak == 0 && weeks > 0) {
+    return '$base · streak starts with Week 1';
+  }
+  return base;
 }
 
 String dueDateLabel(DateTime due, DateTime now) {

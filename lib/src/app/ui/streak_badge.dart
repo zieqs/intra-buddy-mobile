@@ -29,7 +29,7 @@ class StreakBadge extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            compact && streak > 0 ? '$streak' : label,
+            compact ? '$streak' : label,
             style: TextStyle(
               fontFamily: 'Fredoka',
               fontSize: 12,
