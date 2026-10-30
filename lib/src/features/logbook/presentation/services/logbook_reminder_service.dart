@@ -7,11 +7,12 @@ import '../../../../app/navigation_keys.dart';
 import '../../../../app/notification_navigation.dart';
 import '../../../../app/startup_intent.dart';
 import '../logbook_reminder_planner.dart';
+import '../logbook_reminder_scheduler.dart';
 
 /// Schedules local logbook reminders on the device.
 ///
 /// These fire even when the app is closed; no server or Firebase involved.
-class LogbookReminderService {
+class LogbookReminderService implements LogbookReminderScheduler {
   LogbookReminderService._();
 
   static final LogbookReminderService instance = LogbookReminderService._();
@@ -73,6 +74,7 @@ class LogbookReminderService {
   }
 
   /// Replaces all pending reminders with a fresh plan.
+  @override
   Future<void> reschedule(List<ReminderWeek> weeks) async {
     try {
       await init();

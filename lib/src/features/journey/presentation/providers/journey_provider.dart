@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -5,6 +7,7 @@ import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/providers/auth_state_provider.dart';
 import '../../../../core/providers/dashboard_refresh_provider.dart';
 import '../../../checklist/presentation/providers/checklist_controller.dart';
+import '../../../logbook/presentation/logbook_reminder_sync.dart';
 import '../../../logbook/presentation/providers/logbook_controller.dart';
 import '../../domain/build_journey.dart';
 import '../../domain/journey.dart';
@@ -35,7 +38,7 @@ final journeyProvider = FutureProvider<Journey>((ref) async {
   final checklist = checklistResult.fold((failure) => throw failure, (v) => v);
   final weeks = weeksResult.fold((failure) => throw failure, (v) => v);
 
-  return buildJourney(
+  final journey = buildJourney(
     checklist: checklist,
     weeks: weeks,
     semesterStart: semester.start,
@@ -43,6 +46,19 @@ final journeyProvider = FutureProvider<Journey>((ref) async {
     semesterName: semester.name,
     now: DateTime.now(),
   );
+
+  // Refresh the weekly reminders whenever the journey reloads, including after
+  // a week is marked submitted.
+  unawaited(
+    syncLogbookReminders(
+      journey,
+      ref.read(logbookReminderSchedulerProvider),
+    ).catchError((Object _) {
+      // Reminders are best-effort; never fail the journey load.
+    }),
+  );
+
+  return journey;
 });
 
 Future<SemesterInfo> _loadSemester(
