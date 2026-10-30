@@ -40,6 +40,7 @@ void main() {
     expect(find.text('THIS WEEK'), findsOneWidget);
     expect(find.text('ALL WEEKS'), findsOneWidget);
     expect(find.text('Week 6'), findsOneWidget);
+    expect(find.textContaining('INTRA portal'), findsOneWidget);
     await tester.tap(find.text('Mark submitted'));
     expect(tapped?.week.weekNumber, 7);
   });

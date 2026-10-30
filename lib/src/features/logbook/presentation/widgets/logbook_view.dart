@@ -146,22 +146,7 @@ class LogbookView extends StatelessWidget {
             ),
           ),
         ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.xl,
-            AppSpacing.lg,
-            AppSpacing.xl,
-            AppSpacing.xxxl,
-          ),
-          sliver: SliverToBoxAdapter(
-            child: Text(
-              'INTRA Buddy tracks your logbook status only. Submit the actual logbook through the INTRA portal.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: context.muted),
-            ),
-          ),
-        ),
+        const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxxl)),
       ],
     );
   }
@@ -226,6 +211,28 @@ class _ThisWeekCard extends StatelessWidget {
               context,
             ).textTheme.bodySmall?.copyWith(color: context.muted),
           ),
+          if (!submitted) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  size: 14,
+                  color: context.muted,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Submit the logbook through the INTRA portal first, then mark it here.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: context.muted,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: AppSpacing.md),
           PrimaryButton(
             label: submitted
