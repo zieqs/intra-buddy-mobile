@@ -24,6 +24,12 @@ String homeHeadline(Journey journey) {
 }
 
 String homeSubline(Journey journey) {
+  final lead = homeSublineLead(journey);
+  final streak = homeStreakText(journey);
+  return streak == null ? lead : '$lead · $streak';
+}
+
+String homeSublineLead(Journey journey) {
   if (journey.isEmpty) {
     return 'Ask your coordinator to add the first milestone.';
   }
@@ -41,25 +47,37 @@ String homeSubline(Journey journey) {
       .length ??
       0;
   final current = journey.currentWeek;
-  final streakText = journey.streak > 0
-      ? '${journey.streak}-week streak'
-      : 'submit this week to start a streak';
-
   if (weeks > 0 && current != null) {
     final left = weeks - current.weekNumber!;
-    if (left <= 0) return 'Final week · $streakText';
-    return '$left weeks to go · $streakText';
+    if (left <= 0) return 'Final week';
+    return '$left weeks to go';
   }
 
   final left = journey.totalNodes - journey.completedNodes;
   final unit = weeks > 0
       ? (left == 1 ? 'step' : 'steps')
       : (left == 1 ? 'milestone' : 'milestones');
-  final base = '$left $unit left';
-  if (journey.streak == 0 && weeks > 0) {
-    return '$base · streak starts with Week 1';
+  return '$left $unit left';
+}
+
+String? homeStreakText(Journey journey) {
+  if (journey.isEmpty || journey.anchorKind == JourneyChapterKind.after) {
+    return null;
   }
-  return base;
+
+  final weeks = journey
+      .chapterFor(JourneyChapterKind.during)
+      ?.nodes
+      .where((node) => node.isWeek)
+      .length ??
+      0;
+  if (weeks == 0) return null;
+
+  if (journey.streak > 0) return '${journey.streak}-week streak';
+  if (journey.currentWeek != null) {
+    return 'Submit this week to start a streak';
+  }
+  return 'Streak starts with Week 1 Submission';
 }
 
 String dueDateLabel(DateTime due, DateTime now) {

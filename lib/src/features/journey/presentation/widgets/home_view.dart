@@ -112,12 +112,7 @@ class HomeView extends StatelessWidget {
                   ).textTheme.displayLarge?.copyWith(color: context.ink),
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  homeSubline(journey),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: context.muted),
-                ),
+                _HeroSubline(journey: journey),
               ],
             ),
           ),
@@ -156,6 +151,45 @@ class HomeView extends StatelessWidget {
         ),
         const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxxl)),
       ],
+    );
+  }
+}
+
+class _HeroSubline extends StatelessWidget {
+  const _HeroSubline({required this.journey});
+
+  final Journey journey;
+
+  @override
+  Widget build(BuildContext context) {
+    final lead = homeSublineLead(journey);
+    final streak = homeStreakText(journey);
+    final style = Theme.of(
+      context,
+    ).textTheme.bodyMedium?.copyWith(color: context.muted);
+
+    return Text.rich(
+      TextSpan(
+        style: style,
+        children: [
+          TextSpan(text: lead),
+          if (streak != null) ...[
+            const TextSpan(text: ' · '),
+            const WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: Padding(
+                padding: EdgeInsets.only(right: 4),
+                child: Icon(
+                  Icons.local_fire_department_rounded,
+                  size: 14,
+                  color: AppColors.flame,
+                ),
+              ),
+            ),
+            TextSpan(text: streak),
+          ],
+        ],
+      ),
     );
   }
 }

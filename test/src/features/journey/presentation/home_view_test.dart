@@ -170,4 +170,55 @@ void main() {
 
     expect(find.text('Open week 1'), findsOneWidget);
   });
+
+  testWidgets('hero shows the flame and the Week 1 streak copy', (
+    tester,
+  ) async {
+    final journey = buildJourney(
+      checklist: [
+        journeyItem(
+          id: 1,
+          title: 'Attend INTRA briefing',
+          phase: 'before',
+          done: true,
+        ),
+      ],
+      weeks: List.generate(12, (index) {
+        final number = index + 1;
+        return journeyWeek(
+          number,
+          DateTime(2026, 9, 18).add(Duration(days: 7 * number)),
+        );
+      }),
+      semesterStart: DateTime(2026, 11, 1),
+      semesterEnd: DateTime(2027, 2, 7),
+      now: DateTime(2026, 10, 30),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: HomeView(
+          journey: journey,
+          userName: 'Aisyah',
+          bell: const SizedBox(),
+          onProfile: () {},
+          onLogbook: () {},
+          onAction: (_) {},
+          onRefresh: () async {},
+          now: DateTime(2026, 10, 30),
+        ),
+      ),
+    );
+
+    final hero = find.textContaining('Streak starts with Week 1 Submission');
+    expect(hero, findsOneWidget);
+    expect(
+      find.descendant(
+        of: hero,
+        matching: find.byIcon(Icons.local_fire_department_rounded),
+      ),
+      findsOneWidget,
+    );
+  });
 }

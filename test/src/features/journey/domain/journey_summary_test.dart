@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intra_buddy_mobile_v2/src/features/journey/domain/build_journey.dart';
+import 'package:intra_buddy_mobile_v2/src/features/journey/domain/journey.dart';
 import 'package:intra_buddy_mobile_v2/src/features/journey/domain/journey_copy.dart';
 import 'package:intra_buddy_mobile_v2/src/features/logbook/domain/entities/logbook_week.dart';
 
@@ -154,5 +155,23 @@ void main() {
       now: DateTime(2026, 10, 31),
     );
     expect(homeSubline(journey), contains('start a streak'));
+  });
+
+  test('points to Week 1 before the internship starts', () {
+    final journey = buildJourney(
+      checklist: const [],
+      weeks: _weeks12(),
+      semesterStart: DateTime(2026, 11, 1),
+      semesterEnd: DateTime(2027, 2, 7),
+      now: DateTime(2026, 10, 30),
+    );
+
+    expect(journey.anchorKind, JourneyChapterKind.before);
+    expect(journey.currentWeek, isNull);
+    expect(homeStreakText(journey), 'Streak starts with Week 1 Submission');
+    expect(
+      homeSubline(journey),
+      endsWith('Streak starts with Week 1 Submission'),
+    );
   });
 }
