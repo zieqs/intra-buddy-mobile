@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
@@ -17,8 +15,7 @@ class HomeView extends StatelessWidget {
     required this.userName,
     required this.bell,
     required this.onProfile,
-    required this.onJourney,
-    required this.onChecklist,
+    required this.onLogbook,
     required this.onAction,
     required this.onRefresh,
     this.now,
@@ -28,8 +25,7 @@ class HomeView extends StatelessWidget {
   final String userName;
   final Widget bell;
   final VoidCallback onProfile;
-  final VoidCallback onJourney;
-  final VoidCallback onChecklist;
+  final VoidCallback onLogbook;
   final ValueChanged<JourneyNode> onAction;
   final Future<void> Function() onRefresh;
   final DateTime? now;
@@ -55,26 +51,30 @@ class HomeView extends StatelessWidget {
             child: EmptyState(
               headline: 'Your journey starts here.',
               body: 'Ask your coordinator to add the first milestone.',
-              actionLabel: 'Open checklist',
-              onAction: onChecklist,
+              actionLabel: 'Open logbook',
+              onAction: onLogbook,
             ),
           ),
         ],
       );
     }
 
-    final currentChapter =
-        journey.chapterFor(journey.anchorKind) ?? journey.chapters.first;
-    final currentIndex = journey.chapters.indexOf(currentChapter);
-    final past = journey.chapters.take(currentIndex).toList();
-    final future = journey.chapters.skip(currentIndex + 1).toList();
     final currentWeek = journey.currentWeek;
     final nextAction = journey.nextAction;
     final weeks = journey
-        .chapterFor(JourneyChapterKind.during)
-        ?.nodes
-        .where((node) => node.isWeek)
-        .length;
+            .chapterFor(JourneyChapterKind.during)
+            ?.nodes
+            .where((node) => node.isWeek)
+            .length ??
+        0;
+
+    final actionLabel = nextAction == null
+        ? 'Mark done'
+        : nextAction.isWeek
+        ? 'Open week ${nextAction.weekNumber}'
+        : nextAction.canComplete
+        ? 'Mark done'
+        : 'Review milestone';
 
     return BuddyScaffold(
       topBar: topBar,
@@ -93,7 +93,7 @@ class HomeView extends StatelessWidget {
               children: [
                 Text(
                   currentWeek != null
-                      ? 'WEEK ${currentWeek.weekNumber} OF ${weeks ?? 0}'
+                      ? 'WEEK ${currentWeek.weekNumber} OF $weeks'
                       : journey.anchorKind == JourneyChapterKind.before
                       ? 'GETTING READY'
                       : journey.anchorKind == JourneyChapterKind.after
@@ -129,96 +129,36 @@ class HomeView extends StatelessWidget {
               dueLabel: nextAction?.dueDate == null
                   ? null
                   : dueDateLabel(nextAction!.dueDate!, reference),
-              actionLabel: nextAction == null
-                  ? 'Mark done'
-                  : nextAction.isWeek
-                  ? nextAction.canComplete
-                        ? 'Mark submitted'
-                        : 'View logbook'
-                  : nextAction.canComplete
-                  ? 'Mark done'
-                  : 'Open checklist',
+              actionLabel: actionLabel,
               onAction: nextAction == null ? null : () => onAction(nextAction),
             ),
           ),
         ),
         const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
-        if (past.isNotEmpty)
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.xl,
-              0,
-              AppSpacing.xl,
-              AppSpacing.md,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  for (final chapter in past)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: ChapterPill(
-                        title: chapter.title,
-                        done: chapter.completed,
-                        total: chapter.total,
-                        onTap: onJourney,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           sliver: SliverToBoxAdapter(
-            child: _ScrollToCurrent(
-              currentNodeId: currentWeek?.id,
-              builder: (key) => TrailChapter(
-                chapter: currentChapter,
-                visibleNodes: _window(currentChapter, currentWeek),
-                currentNodeId: currentWeek?.id,
-                currentNodeKey: key,
-                nextActionId: nextAction?.id,
-                now: reference,
-                onNodeTap: onAction,
-              ),
+            child: Column(
+              children: [
+                for (final chapter in journey.chapters) ...[
+                  TrailChapter(
+                    chapter: chapter,
+                    nextActionId: nextAction?.id,
+                    now: reference,
+                    onNodeTap: onAction,
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                ],
+              ],
             ),
           ),
         ),
-        if (future.isNotEmpty)
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.xl,
-              AppSpacing.md,
-              AppSpacing.xl,
-              0,
-            ),
-            sliver: SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  for (final chapter in future)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: ChapterPill(
-                        title: chapter.title,
-                        done: chapter.completed,
-                        total: chapter.total,
-                        locked:
-                            chapter.kind == JourneyChapterKind.after &&
-                            chapter.completed < chapter.total,
-                        onTap: onJourney,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.xl,
-            AppSpacing.lg,
+            0,
             AppSpacing.xl,
-            AppSpacing.lg,
+            AppSpacing.xxxl,
           ),
           sliver: SliverToBoxAdapter(
             child: Container(
@@ -246,100 +186,7 @@ class HomeView extends StatelessWidget {
             ),
           ),
         ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.xl,
-            0,
-            AppSpacing.xl,
-            AppSpacing.xxxl,
-          ),
-          sliver: SliverToBoxAdapter(
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: onJourney,
-                icon: Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 16,
-                  color: context.blue,
-                ),
-                label: Text(
-                  'VIEW FULL JOURNEY',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelLarge?.copyWith(color: context.blue),
-                ),
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
-
-  List<JourneyNode> _window(JourneyChapter chapter, JourneyNode? current) {
-    if (chapter.nodes.length <= 5) return chapter.nodes;
-    final index = current == null
-        ? 0
-        : math.max(
-            0,
-            chapter.nodes.indexWhere((node) => node.id == current.id),
-          );
-    final start = math.max(0, index - 2);
-    final end = math.min(chapter.nodes.length, index + 3);
-    return chapter.nodes.sublist(start, end);
-  }
-}
-
-class _ScrollToCurrent extends StatefulWidget {
-  const _ScrollToCurrent({
-    required this.currentNodeId,
-    required this.builder,
-  });
-
-  final String? currentNodeId;
-  final Widget Function(GlobalKey key) builder;
-
-  @override
-  State<_ScrollToCurrent> createState() => _ScrollToCurrentState();
-}
-
-class _ScrollToCurrentState extends State<_ScrollToCurrent> {
-  final _key = GlobalKey();
-  bool _didScroll = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _schedule();
-  }
-
-  @override
-  void didUpdateWidget(covariant _ScrollToCurrent oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.currentNodeId != widget.currentNodeId) {
-      _didScroll = false;
-      _schedule();
-    }
-  }
-
-  void _schedule() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _didScroll) return;
-      final nodeContext = _key.currentContext;
-      if (nodeContext == null) return;
-      _didScroll = true;
-      final reduced =
-          MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-      Scrollable.ensureVisible(
-        nodeContext,
-        alignment: 0.3,
-        duration: reduced ? Duration.zero : AppDurations.standard,
-        curve: Curves.easeOut,
-      );
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) => widget.builder(_key);
 }

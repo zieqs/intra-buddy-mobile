@@ -277,6 +277,9 @@ Build these before screens. No screen invents its own card or button.
 
 ## 12. Screens
 
+> **Flow revision (2026-10-30, approved):** Home is now the entire scrollable journey, not a current-chapter window. The separate **Your Journey** screen and the **Checklist** tab are removed. Milestones are marked from trail sheets; the weekly **Logbook** is a first-class dock tab. Dock: **Home, Logbook, Jobs, INTRA**. Sections 12.1–12.2 below are kept as the visual reference; the live flow follows this revision.
+
+
 ### 12.1 Home — Now
 
 - Top bar: brand, streak pill, avatar.

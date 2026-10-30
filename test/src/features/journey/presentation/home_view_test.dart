@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intra_buddy_mobile_v2/src/app/theme/app_theme.dart';
 import 'package:intra_buddy_mobile_v2/src/features/journey/domain/build_journey.dart';
 import 'package:intra_buddy_mobile_v2/src/features/journey/presentation/widgets/home_view.dart';
-import 'package:intra_buddy_mobile_v2/src/features/journey/presentation/widgets/trail_node.dart';
 
 import '../journey_fixtures.dart';
 
@@ -22,7 +21,7 @@ List<dynamic> _weeks12() {
 }
 
 void main() {
-  testWidgets('shows the headline, next task, chapter pill and current week', (
+  testWidgets('shows the headline, next task and full journey', (
     tester,
   ) async {
     final journey = buildJourney(
@@ -55,8 +54,7 @@ void main() {
           userName: 'Aisyah',
           bell: const SizedBox(),
           onProfile: () {},
-          onJourney: () {},
-          onChecklist: () {},
+          onLogbook: () {},
           onAction: (_) {},
           onRefresh: () async {},
           now: DateTime(2026, 10, 31),
@@ -67,6 +65,8 @@ void main() {
     expect(find.textContaining('Halfway'), findsOneWidget);
     expect(find.text('Week 7'), findsNWidgets(2));
     expect(find.text('GETTING READY'), findsOneWidget);
+    expect(find.text('THE INTERNSHIP'), findsOneWidget);
+    expect(find.text('WRAPPING UP'), findsOneWidget);
   });
 
   testWidgets('shows the empty state when the journey is empty', (tester) async {
@@ -84,8 +84,7 @@ void main() {
           userName: 'Aisyah',
           bell: const SizedBox(),
           onProfile: () {},
-          onJourney: () {},
-          onChecklist: () {},
+          onLogbook: () {},
           onAction: (_) {},
           onRefresh: () async {},
         ),
@@ -116,8 +115,7 @@ void main() {
             userName: 'Aisyah',
             bell: const SizedBox(),
             onProfile: () {},
-            onJourney: () {},
-            onChecklist: () {},
+            onLogbook: () {},
             onAction: (_) {},
             onRefresh: () async {},
             now: DateTime(2026, 10, 31),
@@ -129,54 +127,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('scrolls the current week into view at 2x on a small screen', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(375, 667);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-
-    final journey = buildJourney(
-      checklist: [
-        journeyItem(id: 1, title: 'Attend INTRA briefing', phase: 'before'),
-      ],
-      weeks: _weeks12().cast(),
-      semesterStart: DateTime(2026, 9, 18),
-      semesterEnd: DateTime(2027, 1, 31),
-      now: DateTime(2026, 10, 31),
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: AppTheme.light,
-        home: MediaQuery(
-          data: const MediaQueryData(textScaler: TextScaler.linear(2)),
-          child: HomeView(
-            journey: journey,
-            userName: 'Aisyah',
-            bell: const SizedBox(),
-            onProfile: () {},
-            onJourney: () {},
-            onChecklist: () {},
-            onAction: (_) {},
-            onRefresh: () async {},
-            now: DateTime(2026, 10, 31),
-          ),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    final current = tester
-        .widgetList<TrailNode>(find.byType(TrailNode))
-        .firstWhere((node) => node.node.id == journey.currentWeek!.id);
-    final rect = tester.getRect(find.byWidget(current));
-    expect(rect.top, greaterThanOrEqualTo(0));
-    expect(rect.bottom, lessThanOrEqualTo(667));
-  });
-
-  testWidgets('offers View logbook when the next node is a future week', (
+  testWidgets('offers the first week when the next node is a future week', (
     tester,
   ) async {
     final journey = buildJourney(
@@ -188,12 +139,19 @@ void main() {
           done: true,
         ),
       ],
-      weeks: _weeks12().cast(),
+      weeks: List.generate(12, (index) {
+        final number = index + 1;
+        return journeyWeek(
+          number,
+          DateTime(2026, 9, 18).add(Duration(days: 7 * number)),
+        );
+      }),
       semesterStart: DateTime(2026, 11, 1),
       semesterEnd: DateTime(2027, 2, 7),
       now: DateTime(2026, 10, 30),
     );
 
+    expect(journey.nextAction?.title, 'Week 1');
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.light,
@@ -202,8 +160,7 @@ void main() {
           userName: 'Aisyah',
           bell: const SizedBox(),
           onProfile: () {},
-          onJourney: () {},
-          onChecklist: () {},
+          onLogbook: () {},
           onAction: (_) {},
           onRefresh: () async {},
           now: DateTime(2026, 10, 30),
@@ -211,6 +168,6 @@ void main() {
       ),
     );
 
-    expect(find.text('View logbook'), findsOneWidget);
+    expect(find.text('Open week 1'), findsOneWidget);
   });
 }

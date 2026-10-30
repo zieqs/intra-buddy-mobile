@@ -13,16 +13,16 @@ class BuddyDock extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onSelected;
 
-  static const labels = ['Home', 'Checklist', 'Jobs', 'INTRA'];
+  static const labels = ['Home', 'Logbook', 'Jobs', 'INTRA'];
   static const _icons = [
     Icons.home_outlined,
-    Icons.checklist_rounded,
+    Icons.event_note_outlined,
     Icons.work_outline_rounded,
     Icons.chat_bubble_outline_rounded,
   ];
   static const _activeIcons = [
     Icons.home_rounded,
-    Icons.checklist_rounded,
+    Icons.event_note_rounded,
     Icons.work_rounded,
     Icons.chat_bubble_rounded,
   ];

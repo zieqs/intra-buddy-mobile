@@ -19,7 +19,7 @@ void main() {
     );
 
     expect(find.text('Home'), findsOneWidget);
-    expect(find.text('Checklist'), findsOneWidget);
+    expect(find.text('Logbook'), findsOneWidget);
     expect(find.text('Jobs'), findsOneWidget);
     expect(find.text('INTRA'), findsOneWidget);
     await tester.tap(find.text('Jobs'));

@@ -16,6 +16,7 @@ class JourneyNode {
     this.sourceId,
     this.isCompleted = false,
     this.submittedAt,
+    this.description,
     this.displayOrder = 0,
   });
 
@@ -29,6 +30,7 @@ class JourneyNode {
   final int? sourceId;
   final bool isCompleted;
   final DateTime? submittedAt;
+  final String? description;
   final int displayOrder;
 
   bool get isWeek => kind == JourneyNodeKind.week;

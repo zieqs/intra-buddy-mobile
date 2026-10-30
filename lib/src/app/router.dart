@@ -8,8 +8,6 @@ import '../features/auth/presentation/screens/signup_screen.dart';
 import '../features/auth/presentation/screens/email_confirmation_screen.dart';
 import '../features/dashboard/presentation/screens/student_shell.dart';
 import '../features/journey/presentation/screens/home_screen.dart';
-import '../features/journey/presentation/screens/your_journey_screen.dart';
-import '../features/checklist/presentation/screens/checklist_screen.dart';
 import '../features/jobs/presentation/screens/jobs_screen.dart';
 import '../features/chatbot/presentation/screens/chatbot_screen.dart';
 import '../features/my_documents/presentation/screens/my_documents_screen.dart';
@@ -76,9 +74,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/checklist',
-                name: 'checklist',
-                builder: (context, state) => const ChecklistScreen(),
+                path: '/logbook',
+                name: 'logbook',
+                builder: (context, state) => const LogbookScreen(),
               ),
             ],
           ),
@@ -104,12 +102,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         parentNavigatorKey: appRootNavigatorKey,
-        path: '/journey',
-        name: 'journey',
-        builder: (context, state) => const YourJourneyScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: appRootNavigatorKey,
         path: '/my-documents',
         name: 'my-documents',
         builder: (context, state) => const MyDocumentsScreen(),
@@ -119,12 +111,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/notifications',
         name: 'notifications',
         builder: (context, state) => const NotificationScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: appRootNavigatorKey,
-        path: '/logbook',
-        name: 'logbook',
-        builder: (context, state) => const LogbookScreen(),
       ),
       GoRoute(
         parentNavigatorKey: appRootNavigatorKey,

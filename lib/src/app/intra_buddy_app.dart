@@ -18,7 +18,7 @@ class IntraBuddyApp extends ConsumerWidget {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final navContext = appRootNavigatorKey.currentContext;
         if (navContext == null) return;
-        GoRouter.of(navContext).push('/logbook');
+        GoRouter.of(navContext).go('/logbook');
       });
     }
 

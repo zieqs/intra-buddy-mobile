@@ -87,6 +87,7 @@ Journey buildJourney({
       dueDate: due,
       sourceId: item.id,
       isCompleted: item.isCompleted,
+      description: item.description,
       displayOrder: item.displayOrder,
     );
 
