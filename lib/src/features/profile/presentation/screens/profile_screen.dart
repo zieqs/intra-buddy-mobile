@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
-import '../../../journey/presentation/celebration_sound_settings.dart';
 import '../providers/profile_controller.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -65,8 +64,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final profileState = ref.watch(profileControllerProvider);
-    final soundEnabled =
-        ref.watch(celebrationSoundEnabledProvider).value ?? true;
 
     return Scaffold(
       appBar: AppBar(
@@ -213,24 +210,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   icon: Icons.phone_outlined,
                 ),
               ],
-              const SizedBox(height: 8),
-              Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: SwitchListTile(
-                  secondary: const Icon(
-                    Icons.celebration_outlined,
-                    color: AppColors.primary,
-                  ),
-                  title: const Text('Celebration sounds'),
-                  subtitle: const Text(
-                    'A short chime when you complete a step',
-                  ),
-                  value: soundEnabled,
-                  onChanged: (value) => ref
-                      .read(celebrationSoundEnabledProvider.notifier)
-                      .setEnabled(value),
-                ),
-              ),
             ],
           );
         },

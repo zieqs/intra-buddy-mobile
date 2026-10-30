@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_controller.dart';
+import '../../../journey/presentation/celebration_sound_settings.dart';
 import '../../../logbook/presentation/services/logbook_reminder_service.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -11,6 +12,9 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final soundEnabled =
+        ref.watch(celebrationSoundEnabledProvider).value ?? true;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
@@ -55,6 +59,21 @@ class SettingsScreen extends ConsumerWidget {
                     },
                   ),
                 ],
+                const Divider(height: 1, indent: 16, endIndent: 16),
+                SwitchListTile(
+                  secondary: const Icon(
+                    Icons.celebration_outlined,
+                    color: AppColors.primary,
+                  ),
+                  title: const Text('Celebration sounds'),
+                  subtitle: const Text(
+                    'A short chime when you complete a step',
+                  ),
+                  value: soundEnabled,
+                  onChanged: (value) => ref
+                      .read(celebrationSoundEnabledProvider.notifier)
+                      .setEnabled(value),
+                ),
                 const Divider(height: 1, indent: 16, endIndent: 16),
                 ListTile(
                   leading: const Icon(Icons.logout, color: AppColors.error),
