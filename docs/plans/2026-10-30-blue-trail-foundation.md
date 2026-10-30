@@ -16,7 +16,7 @@
 
 ## Global Constraints
 
-- Palette: page `#F4F8FF`, white `#FFFFFF`, ice `#E7F0FF`, blue `#2563EB`, blueDeep `#1D4ED8`, sky `#60A5FA`, navy `#0F2A4A`, muted `#6B7C93`, line `#DCE8FF`, lineStrong `#C9D9F5`, sun `#FFC53D`, sunDeep `#D99A16`, sunText `#5C4300`, flame `#FFB020`, alert `#E5484D`.
+- Palette: page `#F4F8FF`, white `#FFFFFF`, ice `#E7F0FF`, blue `#2563EB`, blueDeep `#1D4ED8`, sky `#60A5FA`, navy `#0F2A4A`, muted `#5C6F86`, line `#DCE8FF`, lineStrong `#C9D9F5`, sun `#FFC53D`, sunDeep `#D99A16`, sunText `#5C4300`, flame `#FFB020`, alert `#E5484D`.
 - Fredoka for display/headings/buttons; Nunito for body/labels. No serif.
 - Cards 18–20px radius; buttons 11–14px; 3D bottom edge; no glass/gradients.
 - Blue is the only action colour. Sun only on the current node, streak, and celebration.

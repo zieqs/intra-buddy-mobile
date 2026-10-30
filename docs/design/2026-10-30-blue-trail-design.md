@@ -193,7 +193,7 @@ No writes beyond the existing checklist toggle and logbook submission. No new ta
 | `page` | `#F4F8FF` | Page background |
 | `white` | `#FFFFFF` | Cards, nodes, sheets |
 | `navy` | `#0F2A4A` | Primary text |
-| `muted` | `#6B7C93` | Secondary text |
+| `muted` | `#5C6F86` | Secondary text |
 | `line` | `#DCE8FF` | Hairlines, future path |
 | `lineStrong` | `#C9D9F5` | Dashed locked borders |
 | `sun` | `#FFC53D` | Current node, streak, celebration only |
