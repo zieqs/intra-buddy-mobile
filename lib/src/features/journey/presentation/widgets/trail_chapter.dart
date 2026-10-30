@@ -11,12 +11,14 @@ class TrailChapter extends StatelessWidget {
     required this.onNodeTap,
     this.nextActionId,
     this.now,
+    this.visibleNodes,
   });
 
   final JourneyChapter chapter;
   final ValueChanged<JourneyNode> onNodeTap;
   final String? nextActionId;
   final DateTime? now;
+  final List<JourneyNode>? visibleNodes;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +46,7 @@ class TrailChapter extends StatelessWidget {
             ],
           ),
         ),
-        for (final node in chapter.nodes)
+        for (final node in visibleNodes ?? chapter.nodes)
           TrailNode(
             node: node,
             isNext: node.id == nextActionId,
