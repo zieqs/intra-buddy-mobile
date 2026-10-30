@@ -129,9 +129,15 @@ class HomeView extends StatelessWidget {
               dueLabel: nextAction?.dueDate == null
                   ? null
                   : dueDateLabel(nextAction!.dueDate!, reference),
-              actionLabel: nextAction?.isWeek == true
-                  ? 'Mark submitted'
-                  : 'Mark done',
+              actionLabel: nextAction == null
+                  ? 'Mark done'
+                  : nextAction.isWeek
+                  ? nextAction.canComplete
+                        ? 'Mark submitted'
+                        : 'View logbook'
+                  : nextAction.canComplete
+                  ? 'Mark done'
+                  : 'Open checklist',
               onAction: nextAction == null ? null : () => onAction(nextAction),
             ),
           ),

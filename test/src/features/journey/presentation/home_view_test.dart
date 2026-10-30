@@ -175,4 +175,42 @@ void main() {
     expect(rect.top, greaterThanOrEqualTo(0));
     expect(rect.bottom, lessThanOrEqualTo(667));
   });
+
+  testWidgets('offers View logbook when the next node is a future week', (
+    tester,
+  ) async {
+    final journey = buildJourney(
+      checklist: [
+        journeyItem(
+          id: 1,
+          title: 'Attend INTRA briefing',
+          phase: 'before',
+          done: true,
+        ),
+      ],
+      weeks: _weeks12().cast(),
+      semesterStart: DateTime(2026, 11, 1),
+      semesterEnd: DateTime(2027, 2, 7),
+      now: DateTime(2026, 10, 30),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: HomeView(
+          journey: journey,
+          userName: 'Aisyah',
+          bell: const SizedBox(),
+          onProfile: () {},
+          onJourney: () {},
+          onChecklist: () {},
+          onAction: (_) {},
+          onRefresh: () async {},
+          now: DateTime(2026, 10, 30),
+        ),
+      ),
+    );
+
+    expect(find.text('View logbook'), findsOneWidget);
+  });
 }

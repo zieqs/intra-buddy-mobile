@@ -22,6 +22,8 @@ Future<void> celebrate({
       ? remaining <= 0
             ? 'Final week done · ${journey.streak}-week streak'
             : '$remaining to go · ${journey.streak}-week streak'
+      : journey.streak == 0
+      ? node.title
       : '${node.title} · ${journey.streak}-week streak';
 
   await showGeneralDialog<void>(
