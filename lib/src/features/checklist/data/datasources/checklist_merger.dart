@@ -30,6 +30,8 @@ List<Map<String, dynamic>> mergeChecklistRows({
       'is_completed': row['is_completed'] ?? false,
       'is_required': template['required'] ?? true,
       'completed_at': row['completed_at'],
+      'phase': template['phase'],
+      'due_date': row['due_date'],
       'display_order': template['display_order'],
     });
   }

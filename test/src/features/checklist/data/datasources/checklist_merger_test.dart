@@ -80,4 +80,19 @@ void main() {
       expect(rows.single['id'], 101);
     },
   );
+
+  test('carries phase and due date from the template and student row', () {
+    final rows = mergeChecklistRows(
+      templates: [
+        {..._template(1), 'phase': 'before', 'due_date': '2026-09-30'},
+      ],
+      existing: [
+        {..._row(101, 1), 'due_date': '2026-10-02'},
+      ],
+      inserted: const [],
+    );
+
+    expect(rows.single['phase'], 'before');
+    expect(rows.single['due_date'], '2026-10-02');
+  });
 }

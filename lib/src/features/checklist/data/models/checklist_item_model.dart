@@ -23,6 +23,11 @@ class ChecklistItemModel {
   @JsonKey(name: 'completed_at')
   final DateTime? completedAt;
 
+  final String? phase;
+
+  @JsonKey(name: 'due_date')
+  final DateTime? dueDate;
+
   @JsonKey(name: 'display_order')
   final int displayOrder;
 
@@ -34,6 +39,8 @@ class ChecklistItemModel {
     required this.isCompleted,
     this.isRequired = true,
     this.completedAt,
+    this.phase,
+    this.dueDate,
     required this.displayOrder,
   });
 
@@ -49,6 +56,8 @@ class ChecklistItemModel {
     isCompleted: isCompleted,
     isRequired: isRequired,
     completedAt: completedAt,
+    phase: phase,
+    dueDate: dueDate,
     displayOrder: displayOrder,
   );
 }

@@ -21,6 +21,9 @@ class _FakeLogbookRepository implements LogbookRepository {
   }
 
   @override
+  Future<Result<List<LogbookWeek>>> loadExistingWeeks() async => Right(items);
+
+  @override
   Future<Result<LogbookWeek>> toggleSubmitted(int id, bool submitted) async {
     calls.add((id, submitted));
     if (failWrites) return const Left(ServerFailure('offline'));

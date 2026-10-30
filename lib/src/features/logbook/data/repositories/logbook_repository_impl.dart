@@ -31,6 +31,27 @@ class LogbookRepositoryImpl implements LogbookRepository {
   }
 
   @override
+  Future<Result<List<LogbookWeek>>> loadExistingWeeks() async {
+    try {
+      final data = await dataSource.loadExistingWeeks();
+      final weeks = data.map((row) {
+        return LogbookWeek(
+          id: row['id'] as int,
+          weekNumber: row['week_number'] as int,
+          weekEndDate: DateTime.parse(row['week_end_date'] as String),
+          isSubmitted: row['is_submitted'] as bool? ?? false,
+          submittedAt: row['submitted_at'] != null
+              ? DateTime.parse(row['submitted_at'] as String)
+              : null,
+        );
+      }).toList();
+      return Right(weeks);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Result<LogbookWeek>> toggleSubmitted(int id, bool submitted) async {
     try {
       await dataSource.toggleSubmitted(id, submitted);

@@ -17,6 +17,10 @@ ChecklistItemModel _$ChecklistItemModelFromJson(Map<String, dynamic> json) =>
       completedAt: json['completed_at'] == null
           ? null
           : DateTime.parse(json['completed_at'] as String),
+      phase: json['phase'] as String?,
+      dueDate: json['due_date'] == null
+          ? null
+          : DateTime.parse(json['due_date'] as String),
       displayOrder: (json['display_order'] as num).toInt(),
     );
 
@@ -29,5 +33,7 @@ Map<String, dynamic> _$ChecklistItemModelToJson(ChecklistItemModel instance) =>
       'is_completed': instance.isCompleted,
       'is_required': instance.isRequired,
       'completed_at': instance.completedAt?.toIso8601String(),
+      'phase': instance.phase,
+      'due_date': instance.dueDate?.toIso8601String(),
       'display_order': instance.displayOrder,
     };

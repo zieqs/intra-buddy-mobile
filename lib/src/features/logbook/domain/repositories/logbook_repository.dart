@@ -3,5 +3,6 @@ import '../entities/logbook_week.dart';
 
 abstract class LogbookRepository {
   Future<Result<List<LogbookWeek>>> loadWeeks();
+  Future<Result<List<LogbookWeek>>> loadExistingWeeks();
   Future<Result<LogbookWeek>> toggleSubmitted(int id, bool submitted);
 }

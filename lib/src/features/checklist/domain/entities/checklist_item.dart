@@ -6,6 +6,8 @@ class ChecklistItem {
   final bool isCompleted;
   final bool isRequired;
   final DateTime? completedAt;
+  final String? phase;
+  final DateTime? dueDate;
   final int displayOrder;
 
   const ChecklistItem({
@@ -16,6 +18,8 @@ class ChecklistItem {
     required this.isCompleted,
     this.isRequired = true,
     this.completedAt,
+    this.phase,
+    this.dueDate,
     required this.displayOrder,
   });
 }

@@ -48,6 +48,7 @@ class ChecklistRemoteDataSource {
             'student_id': _userId,
             'checklist_item_id': template['id'],
             'is_completed': false,
+            'due_date': template['due_date'],
           },
       ]).select();
     }

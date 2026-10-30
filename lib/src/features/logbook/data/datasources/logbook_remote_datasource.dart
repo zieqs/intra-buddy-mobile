@@ -47,6 +47,15 @@ class LogbookRemoteDataSource {
         .order('week_number', ascending: true);
   }
 
+  /// Read-only: never seeds rows. Used by the journey trail.
+  Future<List<Map<String, dynamic>>> loadExistingWeeks() async {
+    return supabase
+        .from('weekly_logbook_tracking')
+        .select()
+        .eq('student_id', _userId)
+        .order('week_number', ascending: true);
+  }
+
   Future<Map<String, dynamic>?> _getActiveSemester() async {
     final enrollment = await supabase
         .from('student_semesters')
