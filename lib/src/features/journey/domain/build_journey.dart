@@ -152,6 +152,8 @@ Journey buildJourney({
   return Journey(
     chapters: chapters,
     currentWeek: currentWeek,
+    nextAction: _nextAction(chapters, currentWeek, today),
+    streak: streakFor(weeks, now),
     totalNodes: total,
     completedNodes: completed,
     semesterStart: semesterStart,
@@ -164,6 +166,60 @@ Journey buildJourney({
       hasCurrentWeek: currentWeekNumber != null,
     ),
   );
+}
+
+int streakFor(List<LogbookWeek> weeks, DateTime now) {
+  final today = _day(now);
+  final passed = weeks
+      .where((week) => _day(week.weekEndDate).isBefore(today))
+      .toList()
+    ..sort((a, b) => b.weekNumber.compareTo(a.weekNumber));
+
+  var count = 0;
+  int? expectedWeek;
+  for (final week in passed) {
+    if (expectedWeek != null && week.weekNumber != expectedWeek) break;
+    if (!week.isSubmitted) break;
+    final submitted = week.submittedAt;
+    if (submitted != null && _day(submitted).isAfter(_day(week.weekEndDate))) {
+      break;
+    }
+    count++;
+    expectedWeek = week.weekNumber - 1;
+  }
+  return count;
+}
+
+JourneyNode? _nextAction(
+  List<JourneyChapter> chapters,
+  JourneyNode? currentWeek,
+  DateTime today,
+) {
+  final horizon = today.add(const Duration(days: 7));
+  JourneyNode? best;
+
+  for (final chapter in chapters) {
+    for (final node in chapter.nodes) {
+      if (node.isCompleted || node.kind != JourneyNodeKind.milestone) continue;
+      final due = node.dueDate;
+      if (due == null) continue;
+      final day = _day(due);
+      if (day.isAfter(horizon)) continue;
+      if (best == null || _day(best.dueDate!).isAfter(day)) {
+        best = node;
+      }
+    }
+  }
+
+  if (best != null) return best;
+  if (currentWeek != null && !currentWeek.isCompleted) return currentWeek;
+
+  for (final chapter in chapters) {
+    for (final node in chapter.nodes) {
+      if (!node.isCompleted) return node;
+    }
+  }
+  return null;
 }
 
 int _compareMilestones(JourneyNode a, JourneyNode b) {
