@@ -7,7 +7,8 @@ import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/signup_screen.dart';
 import '../features/auth/presentation/screens/email_confirmation_screen.dart';
 import '../features/dashboard/presentation/screens/student_shell.dart';
-import '../features/dashboard/presentation/screens/dashboard_home.dart';
+import '../features/journey/presentation/screens/home_screen.dart';
+import '../features/journey/presentation/screens/your_journey_screen.dart';
 import '../features/checklist/presentation/screens/checklist_screen.dart';
 import '../features/jobs/presentation/screens/jobs_screen.dart';
 import '../features/chatbot/presentation/screens/chatbot_screen.dart';
@@ -68,7 +69,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/dashboard',
                 name: 'dashboard',
-                builder: (context, state) => const DashboardHome(),
+                builder: (context, state) => const HomeScreen(),
               ),
             ],
           ),
@@ -100,6 +101,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
         ],
+      ),
+      GoRoute(
+        parentNavigatorKey: appRootNavigatorKey,
+        path: '/journey',
+        name: 'journey',
+        builder: (context, state) => const YourJourneyScreen(),
       ),
       GoRoute(
         parentNavigatorKey: appRootNavigatorKey,
