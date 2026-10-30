@@ -1,409 +1,130 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/tokens.dart';
+import '../../../../app/ui/ui.dart';
+import '../../../auth/presentation/providers/auth_controller.dart';
+import '../../../journey/presentation/providers/journey_provider.dart';
+import '../../../notifications/presentation/widgets/notification_bell.dart';
 import '../../domain/entities/job_application.dart';
 import '../providers/job_controller.dart';
+import '../widgets/job_form.dart';
+import '../widgets/jobs_view.dart';
 
 class JobsScreen extends ConsumerWidget {
   const JobsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final jobsState = ref.watch(jobControllerProvider);
+    final jobs = ref.watch(jobControllerProvider);
+    final journey = ref.watch(journeyProvider).value;
+    final auth = ref.watch(authControllerProvider);
+    final userName = auth.value?.fullName ?? 'Student';
+    final items = jobs.value;
 
-    return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showJobForm(context, ref, null),
-        backgroundColor: AppColors.secondary,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      body: jobsState.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: AppColors.error),
-              const SizedBox(height: 16),
-              Text(
-                'Failed to load applications',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => ref.invalidate(jobControllerProvider),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-        data: (items) {
-          if (items.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.work_outlined, size: 64, color: context.muted),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No applications yet',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Tap + to add your first job application',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: context.muted),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () => ref.refresh(jobControllerProvider.future),
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: items.length,
-              itemBuilder: (context, index) => _JobCard(item: items[index]),
-            ),
-          );
-        },
-      ),
+    final topBar = BuddyTopBar(
+      brand: 'JOBS',
+      streak: journey?.streak ?? 0,
+      userName: userName,
+      bell: const NotificationBell(),
+      onProfile: () => context.push('/profile'),
     );
-  }
 
-  void _showJobForm(
-    BuildContext context,
-    WidgetRef ref,
-    JobApplication? existing,
-  ) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => _JobForm(existing: existing),
-    );
-  }
-}
-
-class _JobCard extends ConsumerWidget {
-  final JobApplication item;
-
-  const _JobCard({required this.item});
-
-  Color _statusColor(BuildContext context, String status) {
-    switch (status) {
-      case 'Accepted':
-        return AppColors.secondary;
-      case 'Interview':
-        return AppColors.primary;
-      case 'Offer':
-        return AppColors.tertiary;
-      case 'Rejected':
-        return AppColors.error;
-      default:
-        return context.muted;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    item.companyName,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      _showEditForm(context, ref);
-                    } else if (value == 'delete') {
-                      _confirmDelete(context, ref);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                    const PopupMenuItem(value: 'delete', child: Text('Delete')),
-                  ],
-                ),
-              ],
-            ),
-            if (item.position != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                item.position!,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: context.muted),
+    if (items == null) {
+      if (jobs.hasError) {
+        return BuddyScaffold(
+          topBar: topBar,
+          slivers: [
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: EmptyState(
+                headline: "Couldn't load applications.",
+                body: 'Check your connection and try again.',
+                actionLabel: 'Try again',
+                onAction: () => ref.invalidate(jobControllerProvider),
               ),
-            ],
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Chip(
-                  label: Text(
-                    item.status,
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
-                  ),
-                  backgroundColor: _statusColor(context, item.status),
-                  padding: EdgeInsets.zero,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  visualDensity: VisualDensity.compact,
-                ),
-                const Spacer(),
-                Text(
-                  _formatDate(item.applicationDate),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: context.muted),
-                ),
-              ],
             ),
           ],
-        ),
-      ),
+        );
+      }
+
+      return BuddyScaffold(
+        topBar: topBar,
+        slivers: const [
+          SliverPadding(
+            padding: EdgeInsets.all(AppSpacing.xl),
+            sliver: SliverToBoxAdapter(child: _Skeleton()),
+          ),
+        ],
+      );
+    }
+
+    return JobsView(
+      items: items,
+      streak: journey?.streak ?? 0,
+      userName: userName,
+      bell: const NotificationBell(),
+      onProfile: () => context.push('/profile'),
+      onAdd: () => showJobForm(context),
+      onEdit: (item) => showJobForm(context, existing: item),
+      onDelete: (item) => _confirmDelete(context, ref, item),
+      onRefresh: () async {
+        ref.invalidate(jobControllerProvider);
+        await ref.read(jobControllerProvider.future);
+      },
     );
   }
 
-  void _showEditForm(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
+  Future<void> _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    JobApplication item,
+  ) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => _JobForm(existing: item),
-    );
-  }
-
-  void _confirmDelete(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Application'),
-        content: Text('Remove application to ${item.companyName}?'),
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete application?'),
+        content: Text('Remove the application to ${item.companyName}?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext, false),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              ref
-                  .read(jobControllerProvider.notifier)
-                  .deleteApplication(item.id);
-              Navigator.pop(context);
-            },
-            child: const Text(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(
               'Delete',
-              style: TextStyle(color: AppColors.error),
+              style: TextStyle(
+                color: Theme.of(dialogContext).colorScheme.error,
+              ),
             ),
           ),
         ],
       ),
     );
-  }
 
-  String _formatDate(DateTime date) {
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+    if (confirmed != true || !context.mounted) return;
+    await ref.read(jobControllerProvider.notifier).deleteApplication(item.id);
   }
 }
 
-class _JobForm extends ConsumerStatefulWidget {
-  final JobApplication? existing;
-
-  const _JobForm({this.existing});
-
-  @override
-  ConsumerState<_JobForm> createState() => _JobFormState();
-}
-
-class _JobFormState extends ConsumerState<_JobForm> {
-  final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _companyCtrl;
-  late final TextEditingController _positionCtrl;
-  late final TextEditingController _notesCtrl;
-  String _status = 'Pending';
-  bool _isSaving = false;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _companyCtrl = TextEditingController(text: widget.existing?.companyName);
-    _positionCtrl = TextEditingController(text: widget.existing?.position);
-    _notesCtrl = TextEditingController(text: widget.existing?.notes);
-    if (widget.existing != null) _status = widget.existing!.status;
-  }
-
-  @override
-  void dispose() {
-    _companyCtrl.dispose();
-    _positionCtrl.dispose();
-    _notesCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _isSaving = true;
-      _error = null;
-    });
-
-    final isEditing = widget.existing != null;
-    final controller = ref.read(jobControllerProvider.notifier);
-
-    final saved = isEditing
-        ? await controller.updateApplication(
-            id: widget.existing!.id,
-            companyName: _companyCtrl.text.trim(),
-            position: _positionCtrl.text.trim().isEmpty
-                ? null
-                : _positionCtrl.text.trim(),
-            status: _status,
-            notes: _notesCtrl.text.trim().isEmpty
-                ? null
-                : _notesCtrl.text.trim(),
-          )
-        : await controller.addApplication(
-            companyName: _companyCtrl.text.trim(),
-            position: _positionCtrl.text.trim().isEmpty
-                ? null
-                : _positionCtrl.text.trim(),
-            status: _status,
-            notes: _notesCtrl.text.trim().isEmpty
-                ? null
-                : _notesCtrl.text.trim(),
-          );
-
-    if (!mounted) return;
-
-    if (saved) {
-      Navigator.pop(context);
-    } else {
-      setState(() {
-        _isSaving = false;
-        _error = 'Could not save. Check your connection and try again.';
-      });
-    }
-  }
+class _Skeleton extends StatelessWidget {
+  const _Skeleton();
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 24,
-        right: 24,
-        top: 24,
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              widget.existing != null ? 'Edit Application' : 'Add Application',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 20),
-            TextFormField(
-              controller: _companyCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Company Name',
-                prefixIcon: Icon(Icons.business),
-              ),
-              validator: (v) =>
-                  v == null || v.trim().isEmpty ? 'Required' : null,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _positionCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Position',
-                prefixIcon: Icon(Icons.work_outline),
-              ),
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              initialValue: _status,
-              decoration: const InputDecoration(
-                labelText: 'Status',
-                prefixIcon: Icon(Icons.flag_outlined),
-              ),
-              items: const [
-                DropdownMenuItem(value: 'Pending', child: Text('Pending')),
-                DropdownMenuItem(value: 'Interview', child: Text('Interview')),
-                DropdownMenuItem(value: 'Offer', child: Text('Offer')),
-                DropdownMenuItem(value: 'Rejected', child: Text('Rejected')),
-                DropdownMenuItem(value: 'Accepted', child: Text('Accepted')),
-              ],
-              onChanged: (v) => setState(() => _status = v!),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _notesCtrl,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Notes',
-                prefixIcon: Icon(Icons.notes),
-              ),
-            ),
-            const SizedBox(height: 24),
-            if (_error != null) ...[
-              Text(
-                _error!,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.error,
-                ),
-              ),
-              const SizedBox(height: 12),
-            ],
-            ElevatedButton(
-              onPressed: _isSaving ? null : _submit,
-              child: _isSaving
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(widget.existing != null ? 'Update' : 'Add'),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
+    Widget block() => Container(
+      height: 72,
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      decoration: BoxDecoration(
+        color: context.card,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        border: Border.all(color: context.line, width: 1.5),
       ),
     );
+
+    return Column(children: [block(), block(), block()]);
   }
 }
