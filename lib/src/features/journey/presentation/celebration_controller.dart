@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../domain/journey.dart';
+import 'celebration_feedback.dart';
 import 'widgets/celebration_overlay.dart';
 
 Future<void> celebrate({
   required BuildContext context,
   required JourneyNode node,
   required Journey journey,
+  required CelebrationFeedback feedback,
+  required bool soundEnabled,
 }) async {
   final weeks = journey
           .chapterFor(JourneyChapterKind.during)
@@ -25,6 +30,11 @@ Future<void> celebrate({
       : journey.streak == 0
       ? node.title
       : '${node.title} · ${journey.streak}-week streak';
+
+  // Let the overlay paint first, then land the chime with it.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    unawaited(feedback.celebrate(soundEnabled: soundEnabled));
+  });
 
   await showGeneralDialog<void>(
     context: context,

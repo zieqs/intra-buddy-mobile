@@ -8,6 +8,8 @@ import '../../../../app/ui/ui.dart';
 import '../../../auth/presentation/providers/auth_controller.dart';
 import '../../../journey/domain/journey.dart';
 import '../../../journey/presentation/celebration_controller.dart';
+import '../../../journey/presentation/celebration_providers.dart';
+import '../../../journey/presentation/celebration_sound_settings.dart';
 import '../../../journey/presentation/providers/journey_provider.dart';
 import '../../../notifications/presentation/widgets/notification_bell.dart';
 import '../logbook_week_info.dart';
@@ -153,6 +155,8 @@ class _LogbookScreenState extends ConsumerState<LogbookScreen>
       context: context,
       node: _weekNode(updated, info),
       journey: updated,
+      feedback: ref.read(celebrationFeedbackProvider),
+      soundEnabled: ref.read(celebrationSoundEnabledProvider).value ?? true,
     );
   }
 

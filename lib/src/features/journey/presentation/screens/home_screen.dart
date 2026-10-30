@@ -11,6 +11,8 @@ import '../../../notifications/presentation/providers/notification_controller.da
 import '../../../notifications/presentation/widgets/notification_bell.dart';
 import '../../domain/journey.dart';
 import '../celebration_controller.dart';
+import '../celebration_providers.dart';
+import '../celebration_sound_settings.dart';
 import '../providers/journey_provider.dart';
 import '../widgets/home_view.dart';
 import '../widgets/milestone_sheet.dart';
@@ -117,7 +119,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (!mounted) return;
 
     if (action == MilestoneAction.complete) {
-      await celebrate(context: context, node: node, journey: updated);
+      await celebrate(
+        context: context,
+        node: node,
+        journey: updated,
+        feedback: ref.read(celebrationFeedbackProvider),
+        soundEnabled: ref.read(celebrationSoundEnabledProvider).value ?? true,
+      );
     }
   }
 }
