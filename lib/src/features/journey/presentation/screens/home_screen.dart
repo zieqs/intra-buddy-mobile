@@ -15,25 +15,51 @@ import '../providers/journey_provider.dart';
 import '../widgets/home_view.dart';
 import '../widgets/milestone_sheet.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  Journey? _lastJourney;
+
+  @override
+  Widget build(BuildContext context) {
     final journeyAsync = ref.watch(journeyProvider);
     final auth = ref.watch(authControllerProvider);
     final userName = auth.value?.fullName ?? 'Student';
+    _lastJourney = journeyAsync.value ?? _lastJourney;
+    final journey = _lastJourney;
 
     final topBar = BuddyTopBar(
       brand: 'INTRA BUDDY',
-      streak: journeyAsync.value?.streak ?? 0,
+      streak: journey?.streak ?? 0,
       userName: userName,
       bell: const NotificationBell(),
       onProfile: () => context.push('/profile'),
     );
 
-    return journeyAsync.when(
-      loading: () => BuddyScaffold(
+    if (journey == null) {
+      if (journeyAsync.hasError) {
+        return BuddyScaffold(
+          topBar: topBar,
+          slivers: [
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: EmptyState(
+                headline: "Couldn't load your journey.",
+                body: 'Check your connection and try again.',
+                actionLabel: 'Try again',
+                onAction: () => ref.invalidate(journeyProvider),
+              ),
+            ),
+          ],
+        );
+      }
+
+      return BuddyScaffold(
         topBar: topBar,
         slivers: const [
           SliverPadding(
@@ -41,49 +67,32 @@ class HomeScreen extends ConsumerWidget {
             sliver: SliverToBoxAdapter(child: _Skeleton()),
           ),
         ],
-      ),
-      error: (error, _) => BuddyScaffold(
-        topBar: topBar,
-        slivers: [
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: EmptyState(
-              headline: "Couldn't load your journey.",
-              body: 'Check your connection and try again.',
-              actionLabel: 'Try again',
-              onAction: () => ref.invalidate(journeyProvider),
-            ),
-          ),
-        ],
-      ),
-      data: (journey) => HomeView(
-        journey: journey,
-        userName: userName,
-        bell: const NotificationBell(),
-        onProfile: () => context.push('/profile'),
-        onLogbook: () => context.go('/logbook'),
-        onAction: (node) => _handleNode(context, ref, node),
-        onRefresh: () async {
-          ref.invalidate(journeyProvider);
-          ref.invalidate(notificationControllerProvider);
-          await ref.read(journeyProvider.future);
-        },
-      ),
+      );
+    }
+
+    return HomeView(
+      journey: journey,
+      userName: userName,
+      bell: const NotificationBell(),
+      onProfile: () => context.push('/profile'),
+      onLogbook: () => context.go('/logbook'),
+      onAction: _handleNode,
+      onRefresh: () async {
+        ref.invalidate(journeyProvider);
+        ref.invalidate(notificationControllerProvider);
+        await ref.read(journeyProvider.future);
+      },
     );
   }
 
-  Future<void> _handleNode(
-    BuildContext context,
-    WidgetRef ref,
-    JourneyNode node,
-  ) async {
+  Future<void> _handleNode(JourneyNode node) async {
     if (node.isWeek) {
       context.go('/logbook');
       return;
     }
 
     final action = await showMilestoneSheet(context, node: node);
-    if (action == null || !context.mounted) return;
+    if (action == null || !mounted) return;
 
     final sourceId = node.sourceId;
     if (sourceId == null) return;
@@ -94,7 +103,7 @@ class HomeScreen extends ConsumerWidget {
         .toggleItem(sourceId, action == MilestoneAction.complete);
 
     if (ref.read(checklistControllerProvider).hasError) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Couldn't update. Try again.")),
         );
@@ -104,7 +113,7 @@ class HomeScreen extends ConsumerWidget {
 
     ref.invalidate(journeyProvider);
     final updated = await ref.read(journeyProvider.future);
-    if (!context.mounted) return;
+    if (!mounted) return;
 
     if (action == MilestoneAction.complete) {
       await celebrate(context: context, node: node, journey: updated);

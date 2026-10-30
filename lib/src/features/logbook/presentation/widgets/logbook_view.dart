@@ -283,7 +283,9 @@ class _WeekRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
+            AnimatedContainer(
+              duration: AppDurations.standard,
+              curve: Curves.easeOut,
               width: 36,
               height: 36,
               alignment: Alignment.center,
@@ -295,23 +297,37 @@ class _WeekRow extends StatelessWidget {
                   width: 1.5,
                 ),
               ),
-              child: submitted
-                  ? const Icon(Icons.check_rounded, size: 20, color: AppColors.white)
-                  : missed
-                  ? const Icon(
-                      Icons.priority_high_rounded,
-                      size: 20,
-                      color: AppColors.white,
-                    )
-                  : Text(
-                      '${info.week.weekNumber}',
-                      style: TextStyle(
-                        fontFamily: 'Fredoka',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: foreground,
-                      ),
-                    ),
+              child: AnimatedSwitcher(
+                duration: AppDurations.quick,
+                transitionBuilder: (child, animation) => ScaleTransition(
+                  scale: animation,
+                  child: FadeTransition(opacity: animation, child: child),
+                ),
+                child: KeyedSubtree(
+                  key: ValueKey(info.state),
+                  child: submitted
+                      ? const Icon(
+                          Icons.check_rounded,
+                          size: 20,
+                          color: AppColors.white,
+                        )
+                      : missed
+                      ? const Icon(
+                          Icons.priority_high_rounded,
+                          size: 20,
+                          color: AppColors.white,
+                        )
+                      : Text(
+                          '${info.week.weekNumber}',
+                          style: TextStyle(
+                            fontFamily: 'Fredoka',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: foreground,
+                          ),
+                        ),
+                ),
+              ),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(

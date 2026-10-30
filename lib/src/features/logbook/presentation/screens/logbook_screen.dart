@@ -23,6 +23,8 @@ class LogbookScreen extends ConsumerStatefulWidget {
 
 class _LogbookScreenState extends ConsumerState<LogbookScreen>
     with WidgetsBindingObserver {
+  Journey? _lastJourney;
+
   @override
   void initState() {
     super.initState();
@@ -45,7 +47,9 @@ class _LogbookScreenState extends ConsumerState<LogbookScreen>
   @override
   Widget build(BuildContext context) {
     final logbookAsync = ref.watch(logbookControllerProvider);
-    final journey = ref.watch(journeyProvider).value;
+    final journeyAsync = ref.watch(journeyProvider);
+    _lastJourney = journeyAsync.value ?? _lastJourney;
+    final journey = _lastJourney;
     final auth = ref.watch(authControllerProvider);
     final userName = auth.value?.fullName ?? 'Student';
     final streak = journey?.streak ?? 0;
@@ -110,7 +114,7 @@ class _LogbookScreenState extends ConsumerState<LogbookScreen>
           userName: userName,
           bell: const NotificationBell(),
           onProfile: () => context.push('/profile'),
-          onWeekTap: (info) => _openWeek(context, info),
+          onWeekTap: _openWeek,
           onRefresh: () async {
             ref.invalidate(logbookControllerProvider);
             ref.invalidate(journeyProvider);
@@ -121,17 +125,17 @@ class _LogbookScreenState extends ConsumerState<LogbookScreen>
     );
   }
 
-  Future<void> _openWeek(BuildContext context, LogbookWeekInfo info) async {
+  Future<void> _openWeek(LogbookWeekInfo info) async {
     final submitted = !info.week.isSubmitted;
     if (!submitted && !info.canSubmit) return;
 
     final confirmed = await _confirm(context, info, submitted: submitted);
-    if (!confirmed || !context.mounted) return;
+    if (!confirmed || !mounted) return;
 
     final ok = await ref
         .read(logbookControllerProvider.notifier)
         .toggleSubmitted(info.week.id, submitted);
-    if (!context.mounted) return;
+    if (!mounted) return;
 
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -144,7 +148,7 @@ class _LogbookScreenState extends ConsumerState<LogbookScreen>
     if (!submitted) return;
 
     final updated = await ref.read(journeyProvider.future);
-    if (!context.mounted) return;
+    if (!mounted) return;
     await celebrate(
       context: context,
       node: _weekNode(updated, info),

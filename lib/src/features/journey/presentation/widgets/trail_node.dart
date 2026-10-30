@@ -35,58 +35,71 @@ class TrailNode extends StatelessWidget {
 
     final size = node.state == JourneyNodeState.current ? 58.0 : 44.0;
 
-    Widget nodeBody;
+    final Widget content;
     if (isWeek) {
-      nodeBody = Container(
-        width: size,
-        height: size,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: background,
-          border: Border.all(color: border, width: 1.5),
-        ),
-        child: node.state == JourneyNodeState.done
-            ? const Icon(Icons.check_rounded, size: 22, color: AppColors.white)
-            : node.state == JourneyNodeState.missed
-            ? const Icon(
-                Icons.priority_high_rounded,
-                size: 22,
-                color: AppColors.white,
-              )
-            : Text(
-                '${node.weekNumber}',
-                style: TextStyle(
-                  fontFamily: 'Fredoka',
-                  fontSize: size == 58 ? 24 : 16,
-                  fontWeight: FontWeight.w600,
-                  color: foreground,
-                ),
+      content = node.state == JourneyNodeState.done
+          ? const Icon(
+              Icons.check_rounded,
+              size: 22,
+              color: AppColors.white,
+            )
+          : node.state == JourneyNodeState.missed
+          ? const Icon(
+              Icons.priority_high_rounded,
+              size: 22,
+              color: AppColors.white,
+            )
+          : Text(
+              '${node.weekNumber}',
+              style: TextStyle(
+                fontFamily: 'Fredoka',
+                fontSize: size == 58 ? 24 : 16,
+                fontWeight: FontWeight.w600,
+                color: foreground,
               ),
-      );
+            );
     } else {
-      nodeBody = Container(
-        width: size,
-        height: size,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: border, width: 1.5),
-        ),
-        child: node.state == JourneyNodeState.done
-            ? const Icon(Icons.check_rounded, size: 22, color: AppColors.white)
-            : node.state == JourneyNodeState.missed
-            ? const Icon(
-                Icons.priority_high_rounded,
-                size: 22,
-                color: AppColors.white,
-              )
-            : node.state == JourneyNodeState.locked
-            ? Icon(Icons.lock_rounded, size: 18, color: context.muted)
-            : const Icon(Icons.circle, size: 7, color: AppColors.blue),
-      );
+      content = node.state == JourneyNodeState.done
+          ? const Icon(
+              Icons.check_rounded,
+              size: 22,
+              color: AppColors.white,
+            )
+          : node.state == JourneyNodeState.missed
+          ? const Icon(
+              Icons.priority_high_rounded,
+              size: 22,
+              color: AppColors.white,
+            )
+          : node.state == JourneyNodeState.locked
+          ? Icon(Icons.lock_rounded, size: 18, color: context.muted)
+          : const Icon(Icons.circle, size: 7, color: AppColors.blue);
     }
+
+    final nodeBody = AnimatedContainer(
+      duration: AppDurations.standard,
+      curve: Curves.easeOut,
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: isWeek ? BoxShape.circle : BoxShape.rectangle,
+        color: background,
+        borderRadius: isWeek ? null : BorderRadius.circular(14),
+        border: Border.all(color: border, width: 1.5),
+      ),
+      child: AnimatedSwitcher(
+        duration: AppDurations.quick,
+        transitionBuilder: (child, animation) => ScaleTransition(
+          scale: animation,
+          child: FadeTransition(opacity: animation, child: child),
+        ),
+        child: KeyedSubtree(
+          key: ValueKey('${node.state}-${node.kind}'),
+          child: content,
+        ),
+      ),
+    );
 
     return InkWell(
       onTap: onTap,
@@ -103,7 +116,8 @@ class TrailNode extends StatelessWidget {
                   Positioned(
                     top: 0,
                     bottom: 0,
-                    child: Container(
+                    child: AnimatedContainer(
+                      duration: AppDurations.standard,
                       width: 6,
                       color: switch (node.state) {
                         JourneyNodeState.done => context.blue,
