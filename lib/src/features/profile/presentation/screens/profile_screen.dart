@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../journey/presentation/celebration_sound_settings.dart';
 import '../providers/profile_controller.dart';
@@ -118,6 +119,37 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ),
               const SizedBox(height: 24),
+              Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(
+                        Icons.folder_outlined,
+                        color: AppColors.primary,
+                      ),
+                      title: const Text('My documents'),
+                      subtitle: const Text('Offers, forms and files'),
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => context.push('/my-documents'),
+                    ),
+                    const Divider(height: 1, indent: 16, endIndent: 16),
+                    ListTile(
+                      leading: const Icon(
+                        Icons.settings_outlined,
+                        color: AppColors.primary,
+                      ),
+                      title: const Text('Settings'),
+                      subtitle: const Text(
+                        'Notifications, sign out and app info',
+                      ),
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => context.push('/settings'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
               if (_isEditing) ...[
                 Form(
                   key: _formKey,
