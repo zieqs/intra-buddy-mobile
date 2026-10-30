@@ -49,27 +49,31 @@ class _WeekDot extends StatelessWidget {
         onTap: onTap,
         customBorder: const CircleBorder(),
         child: SizedBox(
-          width: size,
-          height: size,
-          child: Container(
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: background,
-              border: Border.all(
-                color: node.state == JourneyNodeState.open
-                    ? context.line
-                    : background,
-                width: 1.5,
+          width: 48,
+          height: 48,
+          child: Center(
+            child: Container(
+              width: size,
+              height: size,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: background,
+                border: Border.all(
+                  color: node.state == JourneyNodeState.open
+                      ? context.line
+                      : background,
+                  width: 1.5,
+                ),
               ),
-            ),
-            child: Text(
-              '${node.weekNumber}',
-              style: TextStyle(
-                fontFamily: 'Fredoka',
-                fontSize: size == 36 ? 14 : 10,
-                fontWeight: FontWeight.w600,
-                color: foreground,
+              child: Text(
+                '${node.weekNumber}',
+                style: TextStyle(
+                  fontFamily: 'Fredoka',
+                  fontSize: size == 36 ? 14 : 10,
+                  fontWeight: FontWeight.w600,
+                  color: foreground,
+                ),
               ),
             ),
           ),

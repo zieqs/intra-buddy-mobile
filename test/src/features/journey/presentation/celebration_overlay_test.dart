@@ -22,6 +22,10 @@ void main() {
 
     expect(find.textContaining('Week 7'), findsOneWidget);
     expect(find.textContaining('6-week streak'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('celebration-confetti')),
+      findsOneWidget,
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Keep going'));
     expect(continued, 1);
@@ -46,6 +50,10 @@ void main() {
     );
 
     expect(find.textContaining('Week 7'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('celebration-confetti')),
+      findsNothing,
+    );
     expect(tester.takeException(), isNull);
   });
 }

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intra_buddy_mobile_v2/src/app/theme/app_theme.dart';
 import 'package:intra_buddy_mobile_v2/src/features/journey/domain/build_journey.dart';
 import 'package:intra_buddy_mobile_v2/src/features/journey/presentation/widgets/home_view.dart';
+import 'package:intra_buddy_mobile_v2/src/features/journey/presentation/widgets/trail_node.dart';
 
 import '../journey_fixtures.dart';
 
@@ -126,5 +127,52 @@ void main() {
     );
 
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('scrolls the current week into view at 2x on a small screen', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(375, 667);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final journey = buildJourney(
+      checklist: [
+        journeyItem(id: 1, title: 'Attend INTRA briefing', phase: 'before'),
+      ],
+      weeks: _weeks12().cast(),
+      semesterStart: DateTime(2026, 9, 18),
+      semesterEnd: DateTime(2027, 1, 31),
+      now: DateTime(2026, 10, 31),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+          child: HomeView(
+            journey: journey,
+            userName: 'Aisyah',
+            bell: const SizedBox(),
+            onProfile: () {},
+            onJourney: () {},
+            onChecklist: () {},
+            onAction: (_) {},
+            onRefresh: () async {},
+            now: DateTime(2026, 10, 31),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final current = tester
+        .widgetList<TrailNode>(find.byType(TrailNode))
+        .firstWhere((node) => node.node.id == journey.currentWeek!.id);
+    final rect = tester.getRect(find.byWidget(current));
+    expect(rect.top, greaterThanOrEqualTo(0));
+    expect(rect.bottom, lessThanOrEqualTo(667));
   });
 }

@@ -81,6 +81,15 @@ class HomeScreen extends ConsumerWidget {
     final sourceId = node.sourceId;
     if (sourceId == null) return;
 
+    if (!node.canComplete) {
+      if (node.isWeek) {
+        context.push('/logbook');
+      } else {
+        context.go('/checklist');
+      }
+      return;
+    }
+
     final confirmed = await _confirm(context, node);
     if (!confirmed || !context.mounted) return;
 

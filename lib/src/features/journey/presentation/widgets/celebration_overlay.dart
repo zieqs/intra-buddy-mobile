@@ -33,11 +33,13 @@ class CelebrationOverlay extends StatelessWidget {
       color: context.blue,
       child: Stack(
         children: [
-          Positioned.fill(
-            child: IgnorePointer(
-              child: _Confetti(animate: !reduced),
+          if (!reduced)
+            const Positioned.fill(
+              key: ValueKey('celebration-confetti'),
+              child: IgnorePointer(
+                child: _Confetti(animate: true),
+              ),
             ),
-          ),
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(AppSpacing.xxl),

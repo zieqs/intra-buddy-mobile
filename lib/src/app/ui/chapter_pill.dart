@@ -54,7 +54,7 @@ class ChapterPill extends StatelessWidget {
             Expanded(
               child: Text(
                 title.toUpperCase(),
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: locked ? context.muted : context.ink,

@@ -109,4 +109,65 @@ void main() {
     );
     expect(after.anchorKind, JourneyChapterKind.after);
   });
+
+  test('no current week before placement starts', () {
+    final journey = buildJourney(
+      checklist: const [],
+      weeks: [journeyWeek(1, DateTime(2026, 10, 4))],
+      semesterStart: DateTime(2026, 10, 1),
+      semesterEnd: DateTime(2027, 1, 31),
+      now: DateTime(2026, 9, 1),
+    );
+    expect(journey.currentWeek, isNull);
+    expect(journey.anchorKind, JourneyChapterKind.before);
+  });
+
+  test('anchors to wrapping up when the last week has ended', () {
+    final journey = buildJourney(
+      checklist: const [],
+      weeks: [
+        journeyWeek(1, DateTime(2026, 9, 25)),
+        journeyWeek(2, DateTime(2026, 10, 2)),
+      ],
+      semesterStart: DateTime(2026, 9, 1),
+      semesterEnd: DateTime(2027, 1, 31),
+      now: DateTime(2026, 10, 10),
+    );
+    expect(journey.currentWeek, isNull);
+    expect(journey.anchorKind, JourneyChapterKind.after);
+  });
+
+  test('no weeks anchors to getting ready mid-semester', () {
+    final journey = buildJourney(
+      checklist: [journeyItem(phase: 'before')],
+      weeks: const [],
+      semesterStart: DateTime(2026, 9, 1),
+      semesterEnd: DateTime(2027, 1, 31),
+      now: DateTime(2026, 10, 10),
+    );
+    expect(journey.anchorKind, JourneyChapterKind.before);
+  });
+
+  test('only eligible nodes are completable', () {
+    expect(journeyNode(state: JourneyNodeState.current).canComplete, isTrue);
+    expect(journeyNode(state: JourneyNodeState.missed).canComplete, isTrue);
+    expect(journeyNode(state: JourneyNodeState.open).canComplete, isFalse);
+    expect(journeyNode(state: JourneyNodeState.done).canComplete, isFalse);
+    expect(
+      journeyNode(
+        kind: JourneyNodeKind.milestone,
+        weekNumber: null,
+        state: JourneyNodeState.open,
+      ).canComplete,
+      isTrue,
+    );
+    expect(
+      journeyNode(
+        kind: JourneyNodeKind.milestone,
+        weekNumber: null,
+        state: JourneyNodeState.locked,
+      ).canComplete,
+      isFalse,
+    );
+  });
 }

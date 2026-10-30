@@ -26,7 +26,7 @@ void main() {
 
     expect(find.text('INTRA'), findsOneWidget);
     expect(find.text('BUDDY'), findsOneWidget);
-    expect(find.textContaining('6-week streak'), findsOneWidget);
+    expect(find.text('6'), findsOneWidget);
     expect(find.bySemanticsLabel('Profile'), findsOneWidget);
     await tester.tap(find.bySemanticsLabel('Profile'));
     expect(profiles, 1);

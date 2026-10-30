@@ -52,35 +52,45 @@ class BuddyTopBar extends StatelessWidget {
                 ),
               ),
             ),
-          Text(
-            first,
-            style: const TextStyle(
-              fontFamily: 'Fredoka',
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.2,
-              color: AppColors.ink,
+          Expanded(
+            child: Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    first,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: 'Fredoka',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.2,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ),
+                if (rest.isNotEmpty) ...[
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      rest,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: 'Fredoka',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.2,
+                        color: AppColors.blue,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
-          if (rest.isNotEmpty) ...[
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                rest,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontFamily: 'Fredoka',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.2,
-                  color: AppColors.blue,
-                ),
-              ),
-            ),
-          ],
-          const Spacer(),
-          StreakBadge(streak: streak),
+          const SizedBox(width: 4),
+          StreakBadge(streak: streak, compact: true),
           const SizedBox(width: 2),
           bell,
           const SizedBox(width: 2),

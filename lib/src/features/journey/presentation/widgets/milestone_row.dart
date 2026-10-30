@@ -73,7 +73,7 @@ class MilestoneRow extends StatelessWidget {
                 children: [
                   Text(
                     node.title,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: context.ink,

@@ -32,6 +32,15 @@ class JourneyNode {
   final int displayOrder;
 
   bool get isWeek => kind == JourneyNodeKind.week;
+
+  bool get canComplete {
+    if (isWeek) {
+      return state == JourneyNodeState.current ||
+          state == JourneyNodeState.missed;
+    }
+    return state == JourneyNodeState.open ||
+        state == JourneyNodeState.missed;
+  }
 }
 
 class JourneyChapter {

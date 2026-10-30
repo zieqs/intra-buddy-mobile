@@ -137,8 +137,6 @@ class TrailNode extends StatelessWidget {
                       ),
                     Text(
                       node.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: (isWeek
                               ? Theme.of(context).textTheme.titleLarge
                               : Theme.of(context).textTheme.titleMedium)

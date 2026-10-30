@@ -25,4 +25,31 @@ void main() {
     await tester.tap(find.text('GETTING READY'));
     expect(taps, 1);
   });
+
+  testWidgets('wraps a long chapter title at 2x text scale', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+          child: Scaffold(
+            body: SizedBox(
+              width: 320,
+              child: ChapterPill(
+                title: 'Getting ready for the placement',
+                done: 0,
+                total: 4,
+                onTap: () {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    expect(
+      tester.getSize(find.text('GETTING READY FOR THE PLACEMENT')).height,
+      greaterThan(30),
+    );
+  });
 }

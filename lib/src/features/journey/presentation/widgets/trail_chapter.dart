@@ -12,6 +12,8 @@ class TrailChapter extends StatelessWidget {
     this.nextActionId,
     this.now,
     this.visibleNodes,
+    this.currentNodeId,
+    this.currentNodeKey,
   });
 
   final JourneyChapter chapter;
@@ -19,6 +21,8 @@ class TrailChapter extends StatelessWidget {
   final String? nextActionId;
   final DateTime? now;
   final List<JourneyNode>? visibleNodes;
+  final String? currentNodeId;
+  final GlobalKey? currentNodeKey;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +52,7 @@ class TrailChapter extends StatelessWidget {
         ),
         for (final node in visibleNodes ?? chapter.nodes)
           TrailNode(
+            key: node.id == currentNodeId ? currentNodeKey : null,
             node: node,
             isNext: node.id == nextActionId,
             now: now,

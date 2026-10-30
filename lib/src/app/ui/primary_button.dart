@@ -27,7 +27,7 @@ class PrimaryButton extends StatelessWidget {
 
     final button = Container(
       width: expand ? double.infinity : null,
-      height: 48,
+      constraints: const BoxConstraints(minHeight: 48),
       decoration: BoxDecoration(
         color: background,
         borderRadius: BorderRadius.circular(AppRadii.button),
@@ -38,24 +38,35 @@ class PrimaryButton extends StatelessWidget {
         child: InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(AppRadii.button),
-          child: Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (icon != null) ...[
-                  Icon(icon, size: 18, color: foreground),
-                  const SizedBox(width: AppSpacing.sm),
-                ],
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontFamily: 'Fredoka',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: foreground,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.md,
+            ),
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 18, color: foreground),
+                    const SizedBox(width: AppSpacing.sm),
+                  ],
+                  Flexible(
+                    child: Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamily: 'Fredoka',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: foreground,
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

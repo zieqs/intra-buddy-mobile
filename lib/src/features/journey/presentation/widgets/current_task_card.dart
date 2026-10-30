@@ -62,8 +62,6 @@ class CurrentTaskCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   current.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: Theme.of(
                     context,
                   ).textTheme.headlineMedium?.copyWith(color: context.ink),

@@ -27,6 +27,10 @@ void main() {
 
     expect(find.text('1'), findsOneWidget);
     expect(find.text('3'), findsOneWidget);
+    expect(
+      tester.getSize(find.byType(InkWell).first).width,
+      greaterThanOrEqualTo(48),
+    );
     await tester.tap(find.text('2'));
     expect(tapped, 2);
   });

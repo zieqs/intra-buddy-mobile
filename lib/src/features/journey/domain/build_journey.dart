@@ -41,11 +41,17 @@ Journey buildJourney({
   final today = _day(now);
   final sortedWeeks = [...weeks]..sort((a, b) => a.weekNumber.compareTo(b.weekNumber));
 
+  final placementStarted =
+      semesterStart == null || !today.isBefore(_day(semesterStart));
+  final weeksEnded = sortedWeeks.isNotEmpty &&
+      _day(sortedWeeks.last.weekEndDate).isBefore(today);
   int? currentWeekNumber;
-  for (final week in sortedWeeks) {
-    if (!_day(week.weekEndDate).isBefore(today)) {
-      currentWeekNumber = week.weekNumber;
-      break;
+  if (placementStarted && !weeksEnded) {
+    for (final week in sortedWeeks) {
+      if (!_day(week.weekEndDate).isBefore(today)) {
+        currentWeekNumber = week.weekNumber;
+        break;
+      }
     }
   }
 
@@ -164,6 +170,9 @@ Journey buildJourney({
       semesterStart: semesterStart,
       semesterEnd: semesterEnd,
       hasCurrentWeek: currentWeekNumber != null,
+      hasWeeks: sortedWeeks.isNotEmpty,
+      weeksEnded: weeksEnded,
+      hasNodes: total > 0,
     ),
   );
 }
@@ -256,17 +265,20 @@ JourneyChapterKind _anchorKind({
   required DateTime? semesterStart,
   required DateTime? semesterEnd,
   required bool hasCurrentWeek,
+  required bool hasWeeks,
+  required bool weeksEnded,
+  required bool hasNodes,
 }) {
   final today = _day(now);
+  if (!hasNodes) return JourneyChapterKind.before;
   if (semesterStart != null && today.isBefore(_day(semesterStart))) {
     return JourneyChapterKind.before;
   }
   if (semesterEnd != null && today.isAfter(_day(semesterEnd))) {
     return JourneyChapterKind.after;
   }
+  if (weeksEnded) return JourneyChapterKind.after;
+  if (!hasWeeks) return JourneyChapterKind.before;
   if (hasCurrentWeek) return JourneyChapterKind.during;
-  if (semesterStart != null && semesterEnd != null) {
-    return JourneyChapterKind.during;
-  }
-  return JourneyChapterKind.before;
+  return JourneyChapterKind.during;
 }

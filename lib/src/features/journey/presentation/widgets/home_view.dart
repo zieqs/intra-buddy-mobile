@@ -165,12 +165,17 @@ class HomeView extends StatelessWidget {
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           sliver: SliverToBoxAdapter(
-            child: TrailChapter(
-              chapter: currentChapter,
-              visibleNodes: _window(currentChapter, currentWeek),
-              nextActionId: nextAction?.id,
-              now: reference,
-              onNodeTap: onAction,
+            child: _ScrollToCurrent(
+              currentNodeId: currentWeek?.id,
+              builder: (key) => TrailChapter(
+                chapter: currentChapter,
+                visibleNodes: _window(currentChapter, currentWeek),
+                currentNodeId: currentWeek?.id,
+                currentNodeKey: key,
+                nextActionId: nextAction?.id,
+                now: reference,
+                onNodeTap: onAction,
+              ),
             ),
           ),
         ),
@@ -217,18 +222,17 @@ class HomeView extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadii.card),
                 border: Border.all(color: context.line, width: 1.5),
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  StreakBadge(streak: journey.streak),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Text(
-                      journey.streak == 0
-                          ? 'Submit this week to start it.'
-                          : 'Every logbook on time. Keep it alive.',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: context.muted,
-                      ),
+                  StreakBadge(streak: journey.streak, compact: true),
+                  const SizedBox(height: 6),
+                  Text(
+                    journey.streak == 0
+                        ? 'Submit this week to start a streak.'
+                        : '${journey.streak}-week streak · every logbook on time.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: context.muted,
                     ),
                   ),
                 ],
@@ -279,4 +283,57 @@ class HomeView extends StatelessWidget {
     final end = math.min(chapter.nodes.length, index + 3);
     return chapter.nodes.sublist(start, end);
   }
+}
+
+class _ScrollToCurrent extends StatefulWidget {
+  const _ScrollToCurrent({
+    required this.currentNodeId,
+    required this.builder,
+  });
+
+  final String? currentNodeId;
+  final Widget Function(GlobalKey key) builder;
+
+  @override
+  State<_ScrollToCurrent> createState() => _ScrollToCurrentState();
+}
+
+class _ScrollToCurrentState extends State<_ScrollToCurrent> {
+  final _key = GlobalKey();
+  bool _didScroll = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _schedule();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ScrollToCurrent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentNodeId != widget.currentNodeId) {
+      _didScroll = false;
+      _schedule();
+    }
+  }
+
+  void _schedule() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _didScroll) return;
+      final nodeContext = _key.currentContext;
+      if (nodeContext == null) return;
+      _didScroll = true;
+      final reduced =
+          MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+      Scrollable.ensureVisible(
+        nodeContext,
+        alignment: 0.3,
+        duration: reduced ? Duration.zero : AppDurations.standard,
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.builder(_key);
 }

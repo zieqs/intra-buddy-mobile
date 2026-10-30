@@ -75,20 +75,29 @@ void main() {
         home: MediaQuery(
           data: const MediaQueryData(textScaler: TextScaler.linear(2)),
           child: Scaffold(
-            body: TrailNode(
-              node: journeyNode(
-                kind: JourneyNodeKind.milestone,
-                title: 'Submit the supervisor confirmation form',
-                state: JourneyNodeState.open,
-                weekNumber: null,
-                due: DateTime(2026, 11, 6),
+            body: SizedBox(
+              width: 320,
+              child: TrailNode(
+                node: journeyNode(
+                  kind: JourneyNodeKind.milestone,
+                  title: 'Submit the supervisor confirmation form',
+                  state: JourneyNodeState.open,
+                  weekNumber: null,
+                  due: DateTime(2026, 11, 6),
+                ),
+                onTap: () {},
               ),
-              onTap: () {},
             ),
           ),
         ),
       ),
     );
     expect(tester.takeException(), isNull);
+    expect(
+      tester
+          .getSize(find.text('Submit the supervisor confirmation form'))
+          .height,
+      greaterThan(60),
+    );
   });
 }
