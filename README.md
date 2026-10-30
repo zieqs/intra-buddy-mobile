@@ -6,16 +6,21 @@ Built with **Flutter** + **Supabase** + **Riverpod**.
 
 ## Features
 
-- **Auth** — Email/password login and signup with student validation
-- **Dashboard** — Progress overview with milestone, job, document, and logbook stats
-- **Checklist** — Milestone checklist with toggle completion and progress tracking
-- **Job Applications** — Track company, position, and status (Pending/Interview/Offer/Rejected/Accepted)
-- **My Documents** — Upload, view, and delete documents via Supabase Storage
-- **Weekly Logbook** — Mark weeks as submitted with progress tracking
-- **Notifications** — Grouped inbox (Today / This Week / Earlier) with swipe-to-delete
+- **Auth** — 3-step email/password signup with student-domain validation, email confirmation, specific auth error messages
+- **Dashboard** — Latest-notification banner plus a date-driven INTRA journey (preparation milestones + 14-week logbook timeline)
+- **Checklist** — Personalised milestone checklist with optimistic completion tracking
+- **Job Applications** — Track company, position, notes and status (Pending/Interview/Offer/Rejected/Accepted)
+- **My Documents** — Upload, in-app PDF/image preview, download, rename and delete via Supabase Storage
+- **Weekly Logbook** — Date-aware week states (current, due soon, overdue, upcoming), submit/undo, and local deadline reminders
+- **Notifications** — Personal messages and coordinator broadcasts (with images), unread badge, realtime updates, archive-with-retention and "Archive read"
 - **Chatbot** — Rule-based FAQ assistant with session history
 - **Profile** — View and edit student name and phone number
-- **Settings** — App version and sign out
+- **Settings** — App version, sign out, and a debug-only notification test
+
+## Project docs
+
+- `docs/CONTEXT.md` — architecture, schema, feature deep dives and known issues
+- `docs/SESSION_HANDOFF.md` — current project state, demo data and next steps
 
 ## Architecture
 

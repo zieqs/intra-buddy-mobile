@@ -68,15 +68,10 @@ Both apps share the same Supabase backend (Postgres, Auth, Realtime, Storage).
 |---------|---------|---------|
 | `flutter` | SDK ^3.11.5 | Framework |
 | `supabase_flutter` | ^2.12.4 | Supabase client for Flutter |
-| `supabase` | ^2.10.4 | Core Supabase Dart package |
 | `flutter_riverpod` | ^3.3.1 | State management |
-| `riverpod_annotation` | ^4.0.2 | Riverpod code generation (not currently used) |
-| `hooks_riverpod` | ^3.3.1 | Hooks + Riverpod integration |
 | `go_router` | ^17.2.3 | Declarative routing |
-| `dio` | ^5.5.0 | HTTP client (imported but unused) |
 | `dartz` | ^0.10.1 | Functional programming (Either monad for Result type) |
 | `json_annotation` | ^4.11.0 | JSON serialization |
-| `intl` | ^0.20.2 | Date formatting (not currently used) |
 | `image_picker` | ^1.1.0 | Camera/gallery for document upload |
 | `file_picker` | ^11.0.2 | File picker for document upload |
 | `url_launcher` | ^6.3.1 | Open external links (mailto) |
@@ -92,7 +87,6 @@ Both apps share the same Supabase backend (Postgres, Auth, Realtime, Storage).
 |---------|---------|---------|
 | `flutter_test` | SDK | Testing |
 | `flutter_lints` | ^6.0.0 | Lint rules |
-| `riverpod_generator` | ^4.0.0 | Riverpod code generation |
 | `build_runner` | ^2.4.0 | Code generation runner |
 | `riverpod_lint` | ^3.1.3 | Riverpod-specific linting |
 | `json_serializable` | ^6.9.4 | JSON code generation |
@@ -281,6 +275,7 @@ lib/
         data/
           datasources/
             document_remote_datasource.dart
+            document_storage_path.dart
           models/
             document_model.dart
           repositories/
@@ -294,12 +289,12 @@ lib/
             load_documents.dart
             upload_document.dart
             delete_document.dart
-            get_view_url.dart
         presentation/
           providers/
             document_controller.dart  # DocumentController (AsyncNotifier)
           screens/
-            my_documents_screen.dart  # List + upload/view/delete
+            my_documents_screen.dart  # List + upload/rename/delete
+            document_preview_screen.dart  # In-app PDF/image preview
 
       logbook/
         data/
@@ -316,15 +311,20 @@ lib/
             load_weeks.dart
             toggle_submitted.dart
         presentation/
+          logbook_week_info.dart        # Date-aware week states
+          logbook_reminder_planner.dart # Reminder schedule (pure)
           providers/
             logbook_controller.dart  # LogbookController (AsyncNotifier)
           screens/
-            logbook_screen.dart      # Week list with submit toggle
+            logbook_screen.dart      # Week states + confirm/undo
+          services/
+            logbook_reminder_service.dart  # Local notifications
 
       notifications/
         data/
           datasources/
             notification_remote_datasource.dart
+            notification_realtime_datasource.dart
           models/
             notification_model.dart
           repositories/
@@ -337,12 +337,17 @@ lib/
           usecases/
             load_notifications.dart
             mark_as_read.dart
-            delete_notification.dart
+            archive_notification.dart
         presentation/
+          notification_time.dart    # Shared relative time formatting
           providers/
             notification_controller.dart  # NotificationController (AsyncNotifier)
           screens/
-            notification_screen.dart  # Grouped list + swipe-to-delete
+            notification_screen.dart  # Grouped inbox + archive
+          widgets/
+            notification_bell.dart
+            notification_image_strip.dart
+            latest_notification_banner.dart
 
       chatbot/
         data/
@@ -500,7 +505,7 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
 - **Status values (DB enum):** `Pending`, `Interview`, `Offer`, `Rejected`, `Accepted`
 - **UI:** List with status chip colors, FAB to add, add/edit via modal bottom sheet, delete via popup menu with confirmation dialog
 - **States:** loading, error with retry, empty with prompt, data with RefreshIndicator
-- **Inline date formatting** (no intl package dependency)
+- **Manual date formatting** in the UI (no `intl` dependency)
 
 ### 10.4 Chatbot
 
@@ -856,31 +861,59 @@ The app uses **Material 3** with a custom light theme.
 
 ## 14. Current State & Known Issues
 
+### Toolchain
+
+| | |
+|---|---|
+| Flutter / Dart | 3.47.8 stable / 3.13.7 |
+| Xcode | 27.1 |
+| iOS deployment target | 15.0 (Xcode 27 minimum) |
+| iOS dependencies | Swift Package Manager |
+| Android | core library desugaring enabled for `flutter_local_notifications` |
+| State / routing | Riverpod 3 (manual providers), GoRouter with `refreshListenable` |
+
 ### Implementation Status
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Auth (login/signup) | Complete | Email/password, validation rules, GoRouter redirect |
-| Dashboard | Complete | Auto-refresh via signal, tappable stat cards |
-| Checklist | Complete | Lazy row creation, optimistic toggle |
-| Job Applications | Complete | DB enum statuses, CRUD with bottom sheet |
+| Auth (login/signup) | Complete | 3-step signup, student validation, confirmation screen, mapped errors |
+| Dashboard | Complete | Latest-notification banner (empty/loading/error) + INTRA journey card |
+| Checklist | Complete | Batched load/insert, optimistic toggle |
+| Job Applications | Complete | CRUD with statuses and notes; saves awaited with error feedback |
 | My Documents | Complete | Gallery/file upload, in-app preview, download, rename, delete |
-| Weekly Logbook | Complete | Submit/unsubmit with progress bar |
-| Notifications | Complete | Grouped list, swipe-to-delete, auto-mark-read |
+| Weekly Logbook | Complete | Date-aware states, confirm/undo, rollback, local deadline reminders |
+| Notifications | Complete | Personal + broadcast fan-out with images, archive retention, realtime, badge |
 | Chatbot | Complete | Rule-based FAQ matching, session history drawer |
-| Profile | Complete | View/edit name and phone |
-| Settings | Complete | App version, sign out with confirmation |
+| Profile | Complete | View/edit name and phone, validation |
+| Settings | Complete | App version, sign out, debug-only notification test |
+
+### Demo data
+
+- Active semester: **`INTRA Session 1 2026/2027`**, 27 Sep 2026 – 31 Jan 2027.
+- 14 logbook weeks, ending 4 Oct 2026 → 3 Jan 2027; week 5 currently in progress.
+- Demo account: `hazieq.azrul@s.unikl.edu.my`.
+- Demo broadcasts 36/37/38; inbox has 6 unread items (broadcasts with images + personal notes).
+- Migration backups: `_demo_backup_semesters_20261029`, `_demo_backup_weeks_20261029` — drop once no longer needed.
 
 ### Known Issues
 
-1. **Direct Supabase access in auth_service:** `AuthService` calls `Supabase.instance.client` directly, making it harder to mock in tests.
-2. **`authService.currentUser!` null risk:** `currentUser!` will crash if the session expires while the user is on a screen that reads it (e.g., any data source's `_userId` getter).
-3. **No autoDispose on providers:** All providers live in memory permanently since none use `.autoDispose`. Acceptable for current app size.
-4. **Riverpod code generation not used:** Manual provider declarations are used instead of `@riverpod` annotations, resulting in more boilerplate.
-5. **Inconsistent controller patterns:** Some features use `AsyncValue.guard` (checklist, logbook), others use `fold()` + `invalidateSelf()` (jobs, documents). Both work but aren't uniform.
-6. **`ChatController` uses manual `Ref`:** Instead of extending `AsyncNotifier`, it stores `Ref` as a field — less idiomatic Riverpod.
-7. **Test coverage is partial:** auth (incl. error mapping), notifications (controller, repository, bell widget), jobs and profile controllers are covered (~53 tests). Checklist, logbook, documents, dashboard and router redirects still have no tests.
-8. **`dio` and `intl` unused:** Dependencies are imported but not used anywhere in the codebase.
+1. **`authService.currentUser!` null risk:** the bang operator throws inside repository calls when the session expires, so screens show error states instead of redirecting to login. A guarded `requireUserId()` helper is the planned fix.
+2. **No remote push yet:** Android FCM is deferred; iOS push additionally requires a paid Apple Developer Program account (APNs entitlement). Students currently get local logbook reminders and in-app realtime updates only.
+3. **Reminders reschedule only when data loads:** the device plan refreshes when the dashboard/logbook loads. If semester dates change in the database, reminders correct on the next app open.
+4. **No unarchive UI:** archived notifications are retained for INTRA records but students can only see active ones.
+5. **No autoDispose on providers:** providers live for the app session. Acceptable at this size; notifications reload on auth changes.
+6. **Direct Supabase access in `AuthService`:** makes auth harder to mock in tests.
+7. **Inconsistent controller patterns:** jobs/documents use `fold()` + `invalidateSelf()`, checklist/logbook use optimistic state; both work but aren't uniform.
+8. **`ChatController` stores a manual `Ref`:** less idiomatic than an `AsyncNotifier`.
+9. **Release APK is debug-signed:** fine for sideloading, rejected by Google Play; needs an upload keystore before publishing.
+10. **Test coverage is partial:** 145 tests cover auth, notifications (controller/repository/widgets), jobs, profile, checklist merge, logbook states/reminders, documents, dashboard journey/card and router stability. Chat, the dashboard provider and most screens have no tests.
+
+### Next steps
+
+1. **Android FCM push** (free): Firebase project, `device_tokens` table, `send-push` Edge Function, DB webhooks for `broadcast_messages` and personal `notifications`.
+2. **iOS push:** only after an Apple Developer Program account is available.
+3. **Session guard:** replace `currentUser!` across the seven datasources.
+4. **Retention job:** delete archived notifications beyond the retention window when it becomes relevant.
 
 ---
 
