@@ -65,7 +65,9 @@ class ChecklistRemoteDataSource {
         .from('student_checklists')
         .update({
           'is_completed': completed,
-          if (completed) 'completed_at': DateTime.now().toIso8601String(),
+          'completed_at': completed
+              ? DateTime.now().toIso8601String()
+              : null,
         })
         .eq('id', checklistId);
   }

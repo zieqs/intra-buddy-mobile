@@ -43,7 +43,7 @@ class ChecklistController extends AsyncNotifier<List<ChecklistItem>> {
           description: current[index].description,
           isCompleted: completed,
           isRequired: current[index].isRequired,
-          completedAt: completed ? DateTime.now() : current[index].completedAt,
+          completedAt: completed ? DateTime.now() : null,
           phase: current[index].phase,
           dueDate: current[index].dueDate,
           displayOrder: current[index].displayOrder,
