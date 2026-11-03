@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intra_buddy_mobile_v2/src/app/theme/app_theme.dart';
 import 'package:intra_buddy_mobile_v2/src/features/journey/domain/build_journey.dart';
+import 'package:intra_buddy_mobile_v2/src/features/journey/presentation/widgets/current_task_card.dart';
 import 'package:intra_buddy_mobile_v2/src/features/journey/presentation/widgets/home_view.dart';
 
 import '../journey_fixtures.dart';
@@ -219,6 +220,97 @@ void main() {
         matching: find.byIcon(Icons.local_fire_department_rounded),
       ),
       findsOneWidget,
+    );
+  });
+
+  testWidgets('keeps the up-next card out of the journey scroll', (
+    tester,
+  ) async {
+    final journey = buildJourney(
+      checklist: [
+        for (var i = 0; i < 5; i++)
+          journeyItem(id: i + 1, title: 'Ready $i', phase: 'before', done: true),
+      ],
+      weeks: List.generate(
+        12,
+        (index) => journeyWeek(
+          index + 1,
+          DateTime(2026, 11, 8).add(Duration(days: 7 * index)),
+        ),
+      ),
+      semesterStart: DateTime(2026, 11, 1),
+      semesterEnd: DateTime(2027, 2, 7),
+      now: DateTime(2026, 11, 3),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: HomeView(
+          journey: journey,
+          userName: 'Aisyah',
+          bell: const SizedBox(),
+          onProfile: () {},
+          onLogbook: () {},
+          onAction: (_) {},
+          onRefresh: () async {},
+          now: DateTime(2026, 11, 3),
+        ),
+      ),
+    );
+
+    expect(find.byType(CurrentTaskCard), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(CustomScrollView),
+        matching: find.byType(CurrentTaskCard),
+      ),
+      findsNothing,
+    );
+  });
+
+  testWidgets('opens the journey focused on the current week', (tester) async {
+    final journey = buildJourney(
+      checklist: [
+        for (var i = 0; i < 5; i++)
+          journeyItem(id: i + 1, title: 'Ready $i', phase: 'before', done: true),
+      ],
+      weeks: List.generate(
+        12,
+        (index) => journeyWeek(
+          index + 1,
+          DateTime(2026, 11, 8).add(Duration(days: 7 * index)),
+        ),
+      ),
+      semesterStart: DateTime(2026, 11, 1),
+      semesterEnd: DateTime(2027, 2, 7),
+      now: DateTime(2026, 11, 3),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: HomeView(
+          journey: journey,
+          userName: 'Aisyah',
+          bell: const SizedBox(),
+          onProfile: () {},
+          onLogbook: () {},
+          onAction: (_) {},
+          onRefresh: () async {},
+          now: DateTime(2026, 11, 3),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = find.descendant(
+      of: find.byType(CustomScrollView),
+      matching: find.byType(Scrollable),
+    );
+    expect(
+      tester.state<ScrollableState>(scrollable).position.pixels,
+      greaterThan(0),
     );
   });
 }
