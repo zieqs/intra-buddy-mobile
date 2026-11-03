@@ -97,6 +97,52 @@ void main() {
     expect(streakFor(weeks, DateTime(2026, 10, 5)), 2);
   });
 
+  test('submitting the current week starts the streak immediately', () {
+    final weeks = [
+      journeyWeek(
+        1,
+        DateTime(2026, 11, 8),
+        submitted: true,
+        submittedAt: DateTime(2026, 11, 3),
+      ),
+    ];
+
+    expect(streakFor(weeks, DateTime(2026, 11, 3)), 1);
+  });
+
+  test('the current week continues an existing streak', () {
+    final weeks = [
+      journeyWeek(
+        1,
+        DateTime(2026, 11, 1),
+        submitted: true,
+        submittedAt: DateTime(2026, 10, 30),
+      ),
+      journeyWeek(
+        2,
+        DateTime(2026, 11, 8),
+        submitted: true,
+        submittedAt: DateTime(2026, 11, 4),
+      ),
+    ];
+
+    expect(streakFor(weeks, DateTime(2026, 11, 4)), 2);
+  });
+
+  test('a missed previous week still starts the current streak at one', () {
+    final weeks = [
+      journeyWeek(1, DateTime(2026, 11, 1)),
+      journeyWeek(
+        2,
+        DateTime(2026, 11, 8),
+        submitted: true,
+        submittedAt: DateTime(2026, 11, 4),
+      ),
+    ];
+
+    expect(streakFor(weeks, DateTime(2026, 11, 4)), 1);
+  });
+
   test('legacy submitted with null submittedAt counts', () {
     final weeks = [
       journeyWeek(1, DateTime(2026, 9, 25), submitted: true),

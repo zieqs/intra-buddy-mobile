@@ -180,20 +180,35 @@ Journey buildJourney({
 
 int streakFor(List<LogbookWeek> weeks, DateTime now) {
   final today = _day(now);
-  final passed = weeks
-      .where((week) => _day(week.weekEndDate).isBefore(today))
-      .toList()
+  final sorted = [...weeks]
     ..sort((a, b) => b.weekNumber.compareTo(a.weekNumber));
+
+  // The current week is the first week whose deadline has not passed. It can
+  // add to the streak as soon as it is submitted, but must not break it while
+  // the deadline is still ahead.
+  int? currentWeekNumber;
+  for (final week in sorted.reversed) {
+    if (!_day(week.weekEndDate).isBefore(today)) {
+      currentWeekNumber = week.weekNumber;
+      break;
+    }
+  }
 
   var count = 0;
   int? expectedWeek;
-  for (final week in passed) {
-    if (expectedWeek != null && week.weekNumber != expectedWeek) break;
+  for (final week in sorted) {
+    final end = _day(week.weekEndDate);
+    final isCurrent = week.weekNumber == currentWeekNumber;
+    final isPassed = end.isBefore(today);
+    if (!isPassed && !isCurrent) continue;
+
+    if (isCurrent && !week.isSubmitted) continue;
     if (!week.isSubmitted) break;
+    if (expectedWeek != null && week.weekNumber != expectedWeek) break;
+
     final submitted = week.submittedAt;
-    if (submitted != null && _day(submitted).isAfter(_day(week.weekEndDate))) {
-      break;
-    }
+    if (submitted != null && _day(submitted).isAfter(end)) break;
+
     count++;
     expectedWeek = week.weekNumber - 1;
   }
