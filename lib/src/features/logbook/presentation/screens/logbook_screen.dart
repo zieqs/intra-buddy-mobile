@@ -136,9 +136,25 @@ class _LogbookScreenState extends ConsumerState<LogbookScreen>
     final confirmed = await _confirm(context, info, submitted: submitted);
     if (!confirmed || !mounted) return;
 
-    final ok = await ref
-        .read(logbookControllerProvider.notifier)
-        .toggleSubmitted(info.week.id, submitted);
+    final saving = showSavingOverlay(
+      context,
+      label: submitted ? 'Submitting…' : 'Updating…',
+    );
+
+    var ok = false;
+    Journey? updated;
+    try {
+      ok = await ref
+          .read(logbookControllerProvider.notifier)
+          .toggleSubmitted(info.week.id, submitted);
+      if (ok) {
+        ref.invalidate(journeyProvider);
+        if (submitted) updated = await ref.read(journeyProvider.future);
+      }
+    } finally {
+      saving.remove();
+    }
+
     if (!mounted) return;
 
     if (!ok) {
@@ -148,11 +164,8 @@ class _LogbookScreenState extends ConsumerState<LogbookScreen>
       return;
     }
 
-    ref.invalidate(journeyProvider);
-    if (!submitted) return;
+    if (!submitted || updated == null) return;
 
-    final updated = await ref.read(journeyProvider.future);
-    if (!mounted) return;
     await celebrate(
       context: context,
       node: _weekNode(updated, info),

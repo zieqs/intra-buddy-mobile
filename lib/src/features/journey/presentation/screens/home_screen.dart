@@ -100,24 +100,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final sourceId = node.sourceId;
     if (sourceId == null) return;
 
-    await ref.read(checklistControllerProvider.future);
-    await ref
-        .read(checklistControllerProvider.notifier)
-        .toggleItem(sourceId, action == MilestoneAction.complete);
+    final saving = showSavingOverlay(
+      context,
+      label: action == MilestoneAction.complete ? 'Saving…' : 'Updating…',
+    );
 
-    if (ref.read(checklistControllerProvider).hasError) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Couldn't update. Try again.")),
-        );
+    var failed = false;
+    Journey? updated;
+    try {
+      await ref.read(checklistControllerProvider.future);
+      await ref
+          .read(checklistControllerProvider.notifier)
+          .toggleItem(sourceId, action == MilestoneAction.complete);
+
+      if (ref.read(checklistControllerProvider).hasError) {
+        failed = true;
+      } else {
+        ref.invalidate(journeyProvider);
+        updated = await ref.read(journeyProvider.future);
       }
+    } finally {
+      saving.remove();
+    }
+
+    if (!mounted) return;
+
+    if (failed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Couldn't update. Try again.")),
+      );
       return;
     }
 
-    ref.invalidate(journeyProvider);
-    final updated = await ref.read(journeyProvider.future);
-    if (!mounted) return;
-
+    if (updated == null) return;
     if (action == MilestoneAction.complete) {
       await celebrate(
         context: context,

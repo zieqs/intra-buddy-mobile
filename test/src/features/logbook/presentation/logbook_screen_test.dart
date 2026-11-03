@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,6 +26,7 @@ class _FakeLogbookRepository implements LogbookRepository {
   final List<LogbookWeek> weeks;
   int? toggledId;
   bool? toggledValue;
+  Completer<void>? gate;
 
   @override
   Future<Result<List<LogbookWeek>>> loadWeeks() async => Right(weeks);
@@ -33,6 +36,7 @@ class _FakeLogbookRepository implements LogbookRepository {
 
   @override
   Future<Result<LogbookWeek>> toggleSubmitted(int id, bool submitted) async {
+    if (gate != null) await gate!.future;
     toggledId = id;
     toggledValue = submitted;
     return Right(
@@ -46,50 +50,57 @@ class _FakeLogbookRepository implements LogbookRepository {
   }
 }
 
+Future<_FakeLogbookRepository> _pumpLogbook(WidgetTester tester) async {
+  SharedPreferences.setMockInitialValues({});
+
+  final week = LogbookWeek(
+    id: 1,
+    weekNumber: 1,
+    weekEndDate: DateTime(2099, 1, 11),
+    isSubmitted: true,
+    submittedAt: DateTime(2099, 1, 4),
+  );
+  final repository = _FakeLogbookRepository([week]);
+
+  final auth = _MockAuthService();
+  when(() => auth.currentUser).thenReturn(null);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        authServiceProvider.overrideWithValue(auth),
+        logbookRepositoryProvider.overrideWithValue(repository),
+        unreadNotificationCountProvider.overrideWithValue(0),
+        journeyProvider.overrideWith(
+          (ref) async => Journey(
+            semesterStart: DateTime(2000, 1, 1),
+            totalNodes: 1,
+          ),
+        ),
+      ],
+      child: MaterialApp(
+        theme: AppTheme.light,
+        home: const LogbookScreen(),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  return repository;
+}
+
+Future<void> _openUndoSheet(WidgetTester tester) async {
+  await tester.tap(find.text('Undo submission'));
+  await tester.pumpAndSettle();
+  expect(find.text('Undo Week 1 submission?'), findsOneWidget);
+}
+
 void main() {
   testWidgets('undoes a submitted week from the current-week card', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    final repository = await _pumpLogbook(tester);
 
-    final week = LogbookWeek(
-      id: 1,
-      weekNumber: 1,
-      weekEndDate: DateTime(2099, 1, 11),
-      isSubmitted: true,
-      submittedAt: DateTime(2099, 1, 4),
-    );
-    final repository = _FakeLogbookRepository([week]);
-
-    final auth = _MockAuthService();
-    when(() => auth.currentUser).thenReturn(null);
-
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          authServiceProvider.overrideWithValue(auth),
-          logbookRepositoryProvider.overrideWithValue(repository),
-          unreadNotificationCountProvider.overrideWithValue(0),
-          journeyProvider.overrideWith(
-            (ref) async => Journey(
-              semesterStart: DateTime(2000, 1, 1),
-              totalNodes: 1,
-            ),
-          ),
-        ],
-        child: MaterialApp(
-          theme: AppTheme.light,
-          home: const LogbookScreen(),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Undo submission'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Undo Week 1 submission?'), findsOneWidget);
-
+    await _openUndoSheet(tester);
     await tester.tap(
       find.descendant(
         of: find.byType(BottomSheet),
@@ -99,6 +110,33 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repository.toggledId, 1);
+    expect(repository.toggledValue, isFalse);
+  });
+
+  testWidgets('shows a wheel while the update is in flight', (tester) async {
+    final repository = await _pumpLogbook(tester);
+    final gate = Completer<void>();
+    repository.gate = gate;
+    addTearDown(() {
+      if (!gate.isCompleted) gate.complete();
+    });
+
+    await _openUndoSheet(tester);
+    await tester.tap(
+      find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.text('Undo submission'),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('Updating…'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Updating…'), findsNothing);
     expect(repository.toggledValue, isFalse);
   });
 }
