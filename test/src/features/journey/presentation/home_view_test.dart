@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intra_buddy_mobile_v2/src/app/theme/app_theme.dart';
 import 'package:intra_buddy_mobile_v2/src/features/journey/domain/build_journey.dart';
+import 'package:intra_buddy_mobile_v2/src/features/journey/domain/journey.dart';
 import 'package:intra_buddy_mobile_v2/src/features/journey/presentation/widgets/current_task_card.dart';
 import 'package:intra_buddy_mobile_v2/src/features/journey/presentation/widgets/home_view.dart';
 
@@ -312,5 +313,55 @@ void main() {
       tester.state<ScrollableState>(scrollable).position.pixels,
       greaterThan(0),
     );
+  });
+
+  testWidgets('undoing a milestone keeps the trail renderable', (tester) async {
+    Journey journey({required bool done}) => buildJourney(
+      checklist: [
+        journeyItem(
+          id: 7,
+          title: 'Submit INTRA Official Forms',
+          phase: 'before',
+          due: DateTime(2026, 10, 30),
+          done: done,
+        ),
+      ],
+      weeks: List.generate(
+        12,
+        (index) => journeyWeek(
+          index + 1,
+          DateTime(2026, 11, 8).add(Duration(days: 7 * index)),
+        ),
+      ),
+      semesterStart: DateTime(2026, 11, 1),
+      semesterEnd: DateTime(2027, 2, 7),
+      now: DateTime(2026, 11, 3),
+    );
+
+    Widget home(Journey value) => MaterialApp(
+      theme: AppTheme.light,
+      home: HomeView(
+        journey: value,
+        userName: 'Aisyah',
+        bell: const SizedBox(),
+        onProfile: () {},
+        onLogbook: () {},
+        onAction: (_) {},
+        onRefresh: () async {},
+        now: DateTime(2026, 11, 3),
+      ),
+    );
+
+    await tester.pumpWidget(home(journey(done: true)));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+
+    // Undoing the milestone moves the focused node from Week 1 (a circle) to
+    // the milestone (a rounded square).
+    await tester.pumpWidget(home(journey(done: false)));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(tester.takeException(), isNull);
   });
 }

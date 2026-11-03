@@ -68,6 +68,40 @@ void main() {
     expect(find.text('Missed'), findsOneWidget);
   });
 
+  testWidgets('a node can change kind without an invalid decoration', (
+    tester,
+  ) async {
+    Widget tree({required bool week}) => MaterialApp(
+      theme: AppTheme.light,
+      home: Scaffold(
+        body: TrailNode(
+          node: week
+              ? journeyNode()
+              : journeyNode(
+                  id: 'm1',
+                  kind: JourneyNodeKind.milestone,
+                  title: 'Submit INTRA Official Forms',
+                  state: JourneyNodeState.open,
+                  weekNumber: null,
+                  due: DateTime(2026, 11, 6),
+                ),
+          onTap: () {},
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(tree(week: true));
+    await tester.pumpAndSettle();
+
+    // The focus key can move the week element onto a milestone (and back),
+    // which reuses this AnimationController for a different node shape.
+    await tester.pumpWidget(tree(week: false));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 60));
+
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('does not overflow at 2x text', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

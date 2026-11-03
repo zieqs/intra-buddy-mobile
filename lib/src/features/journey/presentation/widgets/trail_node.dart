@@ -77,6 +77,7 @@ class TrailNode extends StatelessWidget {
     }
 
     final nodeBody = AnimatedContainer(
+      key: ValueKey(node.id),
       duration: AppDurations.standard,
       curve: Curves.easeOut,
       width: size,
