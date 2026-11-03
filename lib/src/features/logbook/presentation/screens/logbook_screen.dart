@@ -129,7 +129,9 @@ class _LogbookScreenState extends ConsumerState<LogbookScreen>
 
   Future<void> _openWeek(LogbookWeekInfo info) async {
     final submitted = !info.week.isSubmitted;
-    if (!submitted && !info.canSubmit) return;
+    // Future weeks can't be marked, but an already-submitted week can always
+    // be undone.
+    if (submitted && !info.canSubmit) return;
 
     final confirmed = await _confirm(context, info, submitted: submitted);
     if (!confirmed || !mounted) return;
