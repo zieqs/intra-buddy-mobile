@@ -5,6 +5,7 @@ import 'package:intra_buddy_mobile_v2/src/core/errors/failures.dart';
 import 'package:intra_buddy_mobile_v2/src/features/profile/domain/entities/student_profile.dart';
 import 'package:intra_buddy_mobile_v2/src/features/profile/domain/repositories/profile_repository.dart';
 import 'package:intra_buddy_mobile_v2/src/features/profile/presentation/providers/profile_controller.dart';
+import 'package:intra_buddy_mobile_v2/src/core/providers/auth_state_provider.dart';
 
 class _FakeProfileRepository implements ProfileRepository {
   bool failWrites = false;
@@ -42,7 +43,10 @@ void main() {
   setUp(() async {
     repo = _FakeProfileRepository();
     container = ProviderContainer(
-      overrides: [profileRepositoryProvider.overrideWithValue(repo)],
+      overrides: [
+        profileRepositoryProvider.overrideWithValue(repo),
+        authUserIdProvider.overrideWithValue('student-1'),
+      ],
     );
     addTearDown(container.dispose);
     await container.read(profileControllerProvider.future);

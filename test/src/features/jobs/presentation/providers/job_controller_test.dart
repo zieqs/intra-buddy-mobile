@@ -5,6 +5,7 @@ import 'package:intra_buddy_mobile_v2/src/core/errors/failures.dart';
 import 'package:intra_buddy_mobile_v2/src/features/jobs/domain/entities/job_application.dart';
 import 'package:intra_buddy_mobile_v2/src/features/jobs/domain/repositories/job_repository.dart';
 import 'package:intra_buddy_mobile_v2/src/features/jobs/presentation/providers/job_controller.dart';
+import 'package:intra_buddy_mobile_v2/src/core/providers/auth_state_provider.dart';
 
 class _FakeJobRepository implements JobRepository {
   bool failWrites = false;
@@ -69,7 +70,10 @@ void main() {
   setUp(() async {
     repo = _FakeJobRepository();
     container = ProviderContainer(
-      overrides: [jobRepositoryProvider.overrideWithValue(repo)],
+      overrides: [
+        jobRepositoryProvider.overrideWithValue(repo),
+        authUserIdProvider.overrideWithValue('student-1'),
+      ],
     );
     addTearDown(container.dispose);
     await container.read(jobControllerProvider.future);

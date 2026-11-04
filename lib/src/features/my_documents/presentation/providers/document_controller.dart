@@ -25,6 +25,7 @@ final documentControllerProvider =
 class DocumentController extends AsyncNotifier<List<DocumentItem>> {
   @override
   Future<List<DocumentItem>> build() async {
+    ref.watch(authUserIdProvider);
     final repo = ref.watch(documentRepositoryProvider);
     final result = await repo.loadDocuments();
     return result.fold((failure) => throw failure, (items) => items);

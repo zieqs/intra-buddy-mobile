@@ -110,6 +110,7 @@ void main() {
   Future<void> setUpContainer() async {
     container = ProviderContainer(
       overrides: [
+        authUserIdProvider.overrideWithValue('student-1'),
         notificationRepositoryProvider.overrideWithValue(repo),
         notificationRealtimeProvider.overrideWithValue(realtime),
       ],
@@ -334,6 +335,10 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
+          authUserIdProvider.overrideWith((ref) {
+            final auth = ref.watch(authStateProvider);
+            return auth.hasValue ? auth.value?.session?.user.id : 'student-1';
+          }),
           notificationRepositoryProvider.overrideWithValue(repo),
           notificationRealtimeProvider.overrideWithValue(realtime),
           authStateProvider.overrideWith((ref) => authEvents.stream),

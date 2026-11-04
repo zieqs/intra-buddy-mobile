@@ -24,6 +24,7 @@ final messagesProvider = FutureProvider.family<List<ChatMessage>, String>((
   ref,
   sessionId,
 ) async {
+  ref.watch(authUserIdProvider);
   final repo = ref.watch(chatRepositoryProvider);
   final result = await repo.loadMessages(sessionId);
   return result.fold((failure) => throw failure, (messages) => messages);
@@ -32,6 +33,7 @@ final messagesProvider = FutureProvider.family<List<ChatMessage>, String>((
 class SessionsNotifier extends AsyncNotifier<List<ChatSession>> {
   @override
   Future<List<ChatSession>> build() async {
+    ref.watch(authUserIdProvider);
     final repo = ref.watch(chatRepositoryProvider);
     final result = await repo.loadSessions();
     return result.fold((failure) => throw failure, (sessions) => sessions);
@@ -83,6 +85,7 @@ class ChatController extends Notifier<ChatProcessingState> {
 
   @override
   ChatProcessingState build() {
+    ref.watch(authUserIdProvider);
     ref.onDispose(() => _disposed = true);
     return const ChatProcessingState();
   }

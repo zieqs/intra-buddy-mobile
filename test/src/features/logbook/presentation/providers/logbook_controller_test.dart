@@ -5,6 +5,7 @@ import 'package:intra_buddy_mobile_v2/src/core/errors/failures.dart';
 import 'package:intra_buddy_mobile_v2/src/features/logbook/domain/entities/logbook_week.dart';
 import 'package:intra_buddy_mobile_v2/src/features/logbook/domain/repositories/logbook_repository.dart';
 import 'package:intra_buddy_mobile_v2/src/features/logbook/presentation/providers/logbook_controller.dart';
+import 'package:intra_buddy_mobile_v2/src/core/providers/auth_state_provider.dart';
 
 class _FakeLogbookRepository implements LogbookRepository {
   _FakeLogbookRepository(this.items);
@@ -56,7 +57,10 @@ void main() {
   setUp(() async {
     repo = _FakeLogbookRepository([_week(1), _week(2, submitted: true)]);
     container = ProviderContainer(
-      overrides: [logbookRepositoryProvider.overrideWithValue(repo)],
+      overrides: [
+        logbookRepositoryProvider.overrideWithValue(repo),
+        authUserIdProvider.overrideWithValue('student-1'),
+      ],
     );
     addTearDown(container.dispose);
     await container.read(logbookControllerProvider.future);

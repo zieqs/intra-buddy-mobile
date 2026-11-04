@@ -19,6 +19,7 @@ final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
 final notificationRealtimeProvider = Provider<NotificationRealtimeSource>((
   ref,
 ) {
+  ref.watch(authUserIdProvider);
   final source = SupabaseNotificationRealtimeSource(
     ref.watch(authServiceProvider),
     ref.watch(supabaseClientProvider),
@@ -43,9 +44,9 @@ final unreadNotificationCountProvider = Provider<int>((ref) {
 class NotificationController extends AsyncNotifier<List<AppNotification>> {
   @override
   Future<List<AppNotification>> build() async {
-    // Reload whenever the session changes so one user's inbox (and badge)
+    // Reload whenever the account changes so one user's inbox (and badge)
     // can never leak into another user's session.
-    ref.watch(authStateProvider);
+    ref.watch(authUserIdProvider);
 
     // Live updates: new broadcasts, reads from another device, deletions.
     ref.watch(notificationRealtimeProvider).watch(onChange: _refreshFromServer);

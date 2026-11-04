@@ -20,6 +20,7 @@ final profileControllerProvider =
 class ProfileController extends AsyncNotifier<StudentProfile> {
   @override
   Future<StudentProfile> build() async {
+    ref.watch(authUserIdProvider);
     final repo = ref.watch(profileRepositoryProvider);
     final result = await repo.loadProfile();
     return result.fold((failure) => throw failure, (profile) => profile);

@@ -12,6 +12,13 @@ final authStateProvider = StreamProvider<supabase.AuthState>((ref) {
 });
 
 final currentUserProvider = Provider<supabase.User?>((ref) {
-  final auth = ref.watch(authServiceProvider);
-  return auth.currentUser;
+  final authState = ref.watch(authStateProvider);
+  return authState.value?.session?.user ??
+      ref.watch(authServiceProvider).currentUser;
+});
+
+/// The current account id. User-scoped providers watch this so a sign-out or
+/// account switch invalidates their cached data.
+final authUserIdProvider = Provider<String?>((ref) {
+  return ref.watch(currentUserProvider)?.id;
 });

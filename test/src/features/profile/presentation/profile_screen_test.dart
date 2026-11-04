@@ -9,6 +9,7 @@ import 'package:intra_buddy_mobile_v2/src/features/profile/domain/repositories/p
 import 'package:intra_buddy_mobile_v2/src/features/profile/presentation/providers/profile_controller.dart';
 import 'package:intra_buddy_mobile_v2/src/features/profile/presentation/screens/profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intra_buddy_mobile_v2/src/core/providers/auth_state_provider.dart';
 
 class _FakeProfileRepository implements ProfileRepository {
   @override
@@ -58,6 +59,7 @@ Future<void> _pumpProfile(WidgetTester tester, GoRouter router) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        authUserIdProvider.overrideWithValue('student-1'),
         profileRepositoryProvider.overrideWithValue(_FakeProfileRepository()),
       ],
       child: MaterialApp.router(routerConfig: router),

@@ -5,6 +5,7 @@ import 'package:intra_buddy_mobile_v2/src/core/errors/failures.dart';
 import 'package:intra_buddy_mobile_v2/src/features/checklist/domain/entities/checklist_item.dart';
 import 'package:intra_buddy_mobile_v2/src/features/checklist/domain/repositories/checklist_repository.dart';
 import 'package:intra_buddy_mobile_v2/src/features/checklist/presentation/providers/checklist_controller.dart';
+import 'package:intra_buddy_mobile_v2/src/core/providers/auth_state_provider.dart';
 
 class _FakeChecklistRepository implements ChecklistRepository {
   @override
@@ -40,6 +41,7 @@ void main() {
   test('undoing a milestone clears its completion time', () async {
     final container = ProviderContainer(
       overrides: [
+        authUserIdProvider.overrideWithValue('student-1'),
         checklistRepositoryProvider.overrideWithValue(
           _FakeChecklistRepository(),
         ),

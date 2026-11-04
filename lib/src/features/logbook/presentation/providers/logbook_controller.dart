@@ -21,6 +21,7 @@ final logbookControllerProvider =
 class LogbookController extends AsyncNotifier<List<LogbookWeek>> {
   @override
   Future<List<LogbookWeek>> build() async {
+    ref.watch(authUserIdProvider);
     final repo = ref.watch(logbookRepositoryProvider);
     final result = await repo.loadWeeks();
     return result.fold((failure) => throw failure, (weeks) => weeks);

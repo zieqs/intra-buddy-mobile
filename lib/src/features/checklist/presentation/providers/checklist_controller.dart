@@ -25,6 +25,7 @@ class ChecklistController extends AsyncNotifier<List<ChecklistItem>> {
   @override
   Future<List<ChecklistItem>> build() async {
     ref.watch(currentTabIndexProvider);
+    ref.watch(authUserIdProvider);
     final repo = ref.watch(checklistRepositoryProvider);
     final result = await repo.loadChecklist();
     return result.fold((failure) => throw failure, (items) => items);

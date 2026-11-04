@@ -21,6 +21,7 @@ final jobControllerProvider =
 class JobController extends AsyncNotifier<List<JobApplication>> {
   @override
   Future<List<JobApplication>> build() async {
+    ref.watch(authUserIdProvider);
     final repo = ref.watch(jobRepositoryProvider);
     final result = await repo.loadApplications();
     return result.fold((failure) => throw failure, (items) => items);

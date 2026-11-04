@@ -6,6 +6,7 @@ import 'package:intra_buddy_mobile_v2/src/core/errors/failures.dart';
 import 'package:intra_buddy_mobile_v2/src/features/my_documents/domain/entities/document_item.dart';
 import 'package:intra_buddy_mobile_v2/src/features/my_documents/domain/repositories/document_repository.dart';
 import 'package:intra_buddy_mobile_v2/src/features/my_documents/presentation/providers/document_controller.dart';
+import 'package:intra_buddy_mobile_v2/src/core/providers/auth_state_provider.dart';
 
 class _FakeDocumentRepository implements DocumentRepository {
   final List<DocumentItem> items = [];
@@ -71,7 +72,10 @@ void main() {
   setUp(() async {
     repo = _FakeDocumentRepository();
     container = ProviderContainer(
-      overrides: [documentRepositoryProvider.overrideWithValue(repo)],
+      overrides: [
+        documentRepositoryProvider.overrideWithValue(repo),
+        authUserIdProvider.overrideWithValue('student-1'),
+      ],
     );
     addTearDown(container.dispose);
     await container.read(documentControllerProvider.future);

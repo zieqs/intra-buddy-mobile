@@ -21,6 +21,7 @@ class SemesterInfo {
 }
 
 final journeyProvider = FutureProvider<Journey>((ref) async {
+  ref.watch(authUserIdProvider);
   ref.watch(dashboardRefreshProvider);
 
   final auth = ref.watch(authServiceProvider);
