@@ -23,6 +23,8 @@ class _MockAuthService extends Mock implements AuthService {}
 
 class _MockUser extends Mock implements User {}
 
+class _MockSession extends Mock implements Session {}
+
 class _MockSupabaseClient extends Mock implements SupabaseClient {}
 
 class _FakeChecklistRepository implements ChecklistRepository {
@@ -134,8 +136,10 @@ void main() {
     final auth = _MockAuthService();
     final userA = _MockUser();
     final userB = _MockUser();
+    final sessionB = _MockSession();
     when(() => userA.id).thenReturn('student-a');
     when(() => userB.id).thenReturn('student-b');
+    when(() => sessionB.user).thenReturn(userB);
     when(() => auth.currentUser).thenReturn(userA);
     when(() => auth.authStateChanges).thenAnswer((_) => events.stream);
 
@@ -163,7 +167,7 @@ void main() {
     when(() => auth.currentUser).thenReturn(userB);
     expect(auth.currentUser?.id, 'student-b');
     container.listen(authStateProvider, (_, _) {});
-    events.add(const AuthState(AuthChangeEvent.signedIn, null));
+    events.add(AuthState(AuthChangeEvent.signedIn, sessionB));
     await Future<void>.delayed(const Duration(milliseconds: 10));
     await container.pump();
     expect(
@@ -176,5 +180,13 @@ void main() {
 
     expect(repository.calls, 2);
     expect(scheduler.weeks!.single.weekNumber, 2);
+
+    when(() => auth.currentUser).thenReturn(null);
+    events.add(const AuthState(AuthChangeEvent.signedOut, null));
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+    await container.pump();
+
+    expect(container.read(authUserIdProvider), isNull);
+    expect((await container.read(journeyProvider.future)).isEmpty, isTrue);
   });
 }

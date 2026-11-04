@@ -13,8 +13,8 @@ final authStateProvider = StreamProvider<supabase.AuthState>((ref) {
 
 final currentUserProvider = Provider<supabase.User?>((ref) {
   final authState = ref.watch(authStateProvider);
-  return authState.value?.session?.user ??
-      ref.watch(authServiceProvider).currentUser;
+  if (authState.hasValue) return authState.value?.session?.user;
+  return ref.watch(authServiceProvider).currentUser;
 });
 
 /// The current account id. User-scoped providers watch this so a sign-out or
