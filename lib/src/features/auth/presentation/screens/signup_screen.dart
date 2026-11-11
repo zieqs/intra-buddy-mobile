@@ -255,6 +255,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             ? "Registration isn't open for any INTRA session yet. "
                   'Ask your coordinator when to sign up.'
             : "You'll be enrolled in this session automatically.",
+        warning: enrollment == null
+            ? null
+            : 'Not your INTRA session? Contact your coordinator before '
+                  'you sign up.',
         onContact: onContact,
       ),
     );

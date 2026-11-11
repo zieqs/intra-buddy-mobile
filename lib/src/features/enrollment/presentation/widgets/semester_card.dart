@@ -18,6 +18,7 @@ class SemesterCard extends StatelessWidget {
     this.title = 'INTRA Session',
     this.emptyLabel = 'No session assigned',
     this.caption,
+    this.warning,
     this.onContact,
     this.onRetry,
     this.icon = Icons.school_outlined,
@@ -29,6 +30,7 @@ class SemesterCard extends StatelessWidget {
   final String title;
   final String emptyLabel;
   final String? caption;
+  final String? warning;
   final VoidCallback? onContact;
   final VoidCallback? onRetry;
   final IconData icon;
@@ -120,6 +122,25 @@ class SemesterCard extends StatelessWidget {
                 style: Theme.of(
                   context,
                 ).textTheme.bodySmall?.copyWith(color: context.muted),
+              ),
+            ],
+            if (warning != null) ...[
+              const SizedBox(height: 6),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.info_outline, size: 14, color: context.alert),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      warning!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: context.alert,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
             if (onContact != null)

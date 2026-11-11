@@ -45,6 +45,24 @@ void main() {
     expect(find.text('No session assigned'), findsNothing);
   });
 
+  testWidgets('shows an optional warning under the caption', (tester) async {
+    await _pump(
+      tester,
+      SemesterCard(
+        enrollment: _enrollment(),
+        caption: "You'll be enrolled in this session automatically.",
+        warning:
+            'Not your INTRA session? Contact your coordinator before you sign up.',
+      ),
+    );
+
+    expect(
+      find.text("You'll be enrolled in this session automatically."),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Not your INTRA session?'), findsOneWidget);
+  });
+
   testWidgets('shows the contact action only when provided', (tester) async {
     await _pump(tester, SemesterCard(enrollment: _enrollment()));
     expect(find.text('Contact coordinator'), findsNothing);

@@ -58,6 +58,10 @@ void main() {
       expect(find.text('Registering for'), findsOneWidget);
       expect(find.text('INTRA Session 2 2026/2027'), findsOneWidget);
       expect(find.text('8 Feb 2027 – 14 Jun 2027'), findsOneWidget);
+      expect(
+        find.textContaining('Not your INTRA session?'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('blocks signup when no session is open for registration', (
