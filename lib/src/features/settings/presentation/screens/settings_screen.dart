@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_controller.dart';
 import '../../../journey/presentation/celebration_sound_settings.dart';
@@ -106,9 +105,6 @@ class SettingsScreen extends ConsumerWidget {
                     );
                     if (confirmed == true) {
                       await ref.read(authControllerProvider.notifier).signOut();
-                      if (context.mounted) {
-                        context.go('/login');
-                      }
                     }
                   },
                 ),

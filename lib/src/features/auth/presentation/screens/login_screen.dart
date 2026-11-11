@@ -51,16 +51,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       );
     });
 
-    ref.listen(authStateProvider, (prev, next) {
-      next.whenOrNull(
-        data: (authState) {
-          if (authState.session != null) {
-            context.go('/dashboard');
-          }
-        },
-      );
-    });
-
     return Scaffold(
       body: SafeArea(
         child: Center(
