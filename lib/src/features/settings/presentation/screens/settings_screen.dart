@@ -1,8 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/utils/coordinator_contact.dart';
 import '../../../auth/presentation/providers/auth_controller.dart';
+import '../../../enrollment/presentation/providers/enrollment_provider.dart';
+import '../../../enrollment/presentation/widgets/semester_card.dart';
 import '../../../journey/presentation/celebration_sound_settings.dart';
 import '../../../logbook/presentation/services/logbook_reminder_service.dart';
 
@@ -13,12 +17,41 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final soundEnabled =
         ref.watch(celebrationSoundEnabledProvider).value ?? true;
+    final enrollment = ref.watch(currentEnrollmentProvider);
+    final contact = configuredCoordinatorContact();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          enrollment.when(
+            loading: () => const SemesterCard(loading: true),
+            error: (error, _) => SemesterCard(
+              error: true,
+              caption: 'Check your connection and try again.',
+              onRetry: () => ref.invalidate(currentEnrollmentProvider),
+              onContact: contact == null
+                  ? null
+                  : () => launchUrl(
+                      contact,
+                      mode: LaunchMode.externalApplication,
+                    ),
+            ),
+            data: (value) => SemesterCard(
+              enrollment: value,
+              caption: value == null
+                  ? 'Ask your coordinator to enroll you in your INTRA session.'
+                  : 'Not your session? Contact your coordinator.',
+              onContact: contact == null
+                  ? null
+                  : () => launchUrl(
+                      contact,
+                      mode: LaunchMode.externalApplication,
+                    ),
+            ),
+          ),
+          const SizedBox(height: 16),
           Card(
             child: Column(
               children: [

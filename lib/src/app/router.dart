@@ -7,6 +7,7 @@ import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/signup_screen.dart';
 import '../features/auth/presentation/screens/email_confirmation_screen.dart';
 import '../features/dashboard/presentation/screens/student_shell.dart';
+import '../features/enrollment/presentation/enrollment_gate.dart';
 import '../features/journey/presentation/screens/home_screen.dart';
 import '../features/jobs/presentation/screens/jobs_screen.dart';
 import '../features/chatbot/presentation/screens/chatbot_screen.dart';
@@ -59,7 +60,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
-          return StudentShell(navigationShell: navigationShell);
+          return EnrollmentGate(
+            child: StudentShell(navigationShell: navigationShell),
+          );
         },
         branches: [
           StatefulShellBranch(

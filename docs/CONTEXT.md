@@ -437,6 +437,20 @@ User role is stored in `public.users.role` with check constraint: `student`, `co
 | Session check | `authService.currentUser` (from `Supabase.instance.client.auth.currentSession`) |
 | Auth stream | `authService.authStateChanges` → Riverpod `authStateProvider` (StreamProvider) |
 
+### Onboarding & semester assignment
+
+Students do not choose their semester. The signup screen shows the session the
+coordinator has opened for registration (`semesters.registration_open`, read
+through the pre-auth `get_open_semester` RPC). The `handle_new_user` trigger
+enrolls the new account in that session. If no session is open, signup is
+blocked with a "contact your coordinator" message.
+
+The signed-in app is wrapped in an enrollment gate: an account with no
+`student_semesters` row sees a pending screen (refresh / contact / sign out)
+instead of empty checklist and logbook screens. Students who were briefed for
+the next intake sign up while the current session is still running; they are
+enrolled in the open session, not the active one.
+
 ### Auth Routing (GoRouter redirect)
 
 ```
@@ -490,7 +504,7 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
 - **Provider:** `checklistControllerProvider` — `AsyncNotifier<List<ChecklistItem>>`
 - **Tables:** `student_semesters`, `semesters`, `checklist_templates`, `student_checklists`
 - **Logic:**
-  1. Find student's enrolled semester (or active semester)
+  1. Find the student's current enrolled semester (never the active semester as a stand-in)
   2. Load `checklist_templates` for that semester, ordered by `display_order`
   3. Fetch the student's existing `student_checklists` rows in **one** query, then batch-create any missing ones (lazy creation)
   4. Display with toggle completion
@@ -645,7 +659,13 @@ All providers are defined manually (no Riverpod code generation). Repository pro
 | start_date | date | NOT NULL | |
 | end_date | date | NOT NULL | |
 | is_active | boolean | NULL | false |
+| registration_open | boolean | NOT NULL | false |
 | created_at | timestamptz | NULL | now() |
+
+`is_active` marks the session currently running. `registration_open` marks the
+session new signups join; at most one semester may have it true (partial unique
+index). Coordinators open it on the next intake before briefing that cohort, so
+a student who signs up before the current session ends joins the right session.
 
 #### `student_semesters`
 | Column | Type | Constraints | Default |
@@ -889,7 +909,7 @@ The app uses **Material 3** with a custom light theme.
 
 ### Demo data
 
-- Active semester: **`INTRA Session 1 2026/2027`**, 27 Sep 2026 – 31 Jan 2027.
+- Active semester: **`INTRA Session 1 2026/2027`**, 1 Nov 2026 – 7 Feb 2027.
 - 14 logbook weeks, ending 4 Oct 2026 → 3 Jan 2027; week 5 currently in progress.
 - Demo account: `hazieq.azrul@s.unikl.edu.my`.
 - Demo broadcasts 36/37/38; inbox has 6 unread items (broadcasts with images + personal notes).

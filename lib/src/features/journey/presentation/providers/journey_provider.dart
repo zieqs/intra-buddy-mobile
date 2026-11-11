@@ -7,6 +7,8 @@ import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/providers/auth_state_provider.dart';
 import '../../../../core/providers/dashboard_refresh_provider.dart';
 import '../../../checklist/presentation/providers/checklist_controller.dart';
+import '../../../enrollment/data/enrollment_remote_datasource.dart';
+import '../../../enrollment/domain/entities/enrollment.dart';
 import '../../../logbook/presentation/logbook_reminder_sync.dart';
 import '../../../logbook/presentation/providers/logbook_controller.dart';
 import '../../domain/build_journey.dart';
@@ -67,35 +69,18 @@ Future<SemesterInfo> _loadSemester(
   String userId,
 ) async {
   try {
-    final enrollment = await supabase
-        .from('student_semesters')
-        .select('semester_id')
-        .eq('student_id', userId)
-        .maybeSingle();
-
-    final semesterId = enrollment?['semester_id'];
-    final response = semesterId != null
-        ? await supabase
-              .from('semesters')
-              .select('name, start_date, end_date')
-              .eq('id', semesterId as int)
-              .maybeSingle()
-        : await supabase
-              .from('semesters')
-              .select('name, start_date, end_date')
-              .eq('is_active', true)
-              .maybeSingle();
-
-    if (response == null) return const SemesterInfo();
-    return SemesterInfo(
-      name: response['name'] as String?,
-      start: _parseDate(response['start_date']),
-      end: _parseDate(response['end_date']),
-    );
+    final enrollment = await resolveCurrentEnrollment(supabase, userId);
+    return _toSemesterInfo(enrollment);
   } catch (_) {
     return const SemesterInfo();
   }
 }
 
-DateTime? _parseDate(Object? value) =>
-    value is String ? DateTime.tryParse(value) : null;
+SemesterInfo _toSemesterInfo(Enrollment? enrollment) {
+  if (enrollment == null) return const SemesterInfo();
+  return SemesterInfo(
+    name: enrollment.name,
+    start: enrollment.startDate,
+    end: enrollment.endDate,
+  );
+}

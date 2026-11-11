@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/services/auth_service.dart';
+import '../../../enrollment/data/enrollment_remote_datasource.dart';
 import 'checklist_merger.dart';
 
 class ChecklistRemoteDataSource {
@@ -11,7 +12,8 @@ class ChecklistRemoteDataSource {
   String get _userId => authService.currentUser!.id;
 
   Future<List<Map<String, dynamic>>> loadChecklist() async {
-    final semesterId = await _getActiveSemesterId();
+    final enrollment = await resolveCurrentEnrollment(supabase, _userId);
+    final semesterId = enrollment?.semesterId;
     if (semesterId == null) return [];
 
     final templates = await supabase
@@ -70,25 +72,5 @@ class ChecklistRemoteDataSource {
               : null,
         })
         .eq('id', checklistId);
-  }
-
-  Future<int?> _getActiveSemesterId() async {
-    final enrollment = await supabase
-        .from('student_semesters')
-        .select('semester_id')
-        .eq('student_id', _userId)
-        .maybeSingle();
-
-    if (enrollment != null) return enrollment['semester_id'] as int;
-
-    final activeSemester = await supabase
-        .from('semesters')
-        .select('id')
-        .eq('is_active', true)
-        .maybeSingle();
-
-    if (activeSemester != null) return activeSemester['id'] as int;
-
-    return null;
   }
 }

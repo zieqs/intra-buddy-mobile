@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/providers/auth_state_provider.dart';
+import '../../../../core/utils/coordinator_contact.dart';
+import '../../../enrollment/domain/entities/enrollment.dart';
+import '../../../enrollment/presentation/providers/enrollment_provider.dart';
+import '../../../enrollment/presentation/widgets/semester_card.dart';
 import '../../domain/entities/user.dart';
 import '../providers/auth_controller.dart';
 import '../widgets/step_indicator.dart';
@@ -42,6 +47,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   }
 
   void _nextStep() {
+    final openSemester = ref.read(openSemesterProvider);
+    final canProceed =
+        openSemester.hasError ||
+        (openSemester.hasValue && openSemester.value != null);
+    if (!canProceed) return;
     if (!_step1FormKey.currentState!.validate()) return;
     setState(() => _stepIndex = 1);
   }
@@ -68,6 +78,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   Widget build(BuildContext context) {
     final authCtrl = ref.watch(authControllerProvider);
     final authService = ref.watch(authServiceProvider);
+    final openSemester = ref.watch(openSemesterProvider);
 
     ref.listen(authControllerProvider, (prev, next) {
       next.whenOrNull(
@@ -103,7 +114,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 const SizedBox(height: 24),
                 StepIndicator(totalSteps: 2, currentStep: _stepIndex),
                 const SizedBox(height: 24),
-                if (_stepIndex == 0) _buildStep1(authService),
+                if (_stepIndex == 0) _buildStep1(authService, openSemester),
                 if (_stepIndex == 1) _buildStep2(authCtrl),
                 const SizedBox(height: 16),
                 TextButton(
@@ -121,12 +132,21 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     );
   }
 
-  Widget _buildStep1(AuthService authService) {
+  Widget _buildStep1(
+    AuthService authService,
+    AsyncValue<Enrollment?> openSemester,
+  ) {
+    final canProceed =
+        openSemester.hasError ||
+        (openSemester.hasValue && openSemester.value != null);
+
     return Form(
       key: _step1FormKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          _buildSemesterPreview(openSemester),
+          const SizedBox(height: 20),
           Text('About You', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 16),
           TextFormField(
@@ -200,8 +220,42 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             },
           ),
           const SizedBox(height: 24),
-          ElevatedButton(onPressed: _nextStep, child: const Text('NEXT')),
+          ElevatedButton(
+            onPressed: canProceed ? _nextStep : null,
+            child: const Text('NEXT'),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSemesterPreview(AsyncValue<Enrollment?> openSemester) {
+    final contact = configuredCoordinatorContact();
+    final onContact = contact == null
+        ? null
+        : () => launchUrl(contact, mode: LaunchMode.externalApplication);
+
+    return openSemester.when(
+      loading: () =>
+          const SemesterCard(loading: true, title: 'Registering for'),
+      error: (error, _) => SemesterCard(
+        error: true,
+        title: 'Registering for',
+        caption:
+            "We couldn't check the open INTRA session. You can continue — "
+            'your session is assigned when you sign up.',
+        onRetry: () => ref.invalidate(openSemesterProvider),
+        onContact: onContact,
+      ),
+      data: (enrollment) => SemesterCard(
+        enrollment: enrollment,
+        title: 'Registering for',
+        emptyLabel: 'No session open for registration',
+        caption: enrollment == null
+            ? "Registration isn't open for any INTRA session yet. "
+                  'Ask your coordinator when to sign up.'
+            : "You'll be enrolled in this session automatically.",
+        onContact: onContact,
       ),
     );
   }
