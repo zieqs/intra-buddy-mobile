@@ -1,5 +1,7 @@
 import 'package:audioplayers/audioplayers.dart';
 
+import '../../../../core/utils/app_logger.dart';
+
 /// Owns the single short chime used by the celebration overlay.
 ///
 /// One player is prepared once at startup so the first ding is not delayed by
@@ -27,8 +29,13 @@ class CelebrationAudio {
       await _player.setVolume(0.7);
       await _player.setSource(AssetSource('audio/celebration.wav'));
       _prepared = true;
-    } catch (_) {
+    } catch (error, stackTrace) {
       _unavailable = true;
+      AppLogger.warning(
+        'Celebration audio could not be prepared',
+        error: error,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -39,8 +46,13 @@ class CelebrationAudio {
     try {
       await _player.stop();
       await _player.resume();
-    } catch (_) {
+    } catch (error, stackTrace) {
       _unavailable = true;
+      AppLogger.warning(
+        'Celebration audio playback failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
     }
   }
 }

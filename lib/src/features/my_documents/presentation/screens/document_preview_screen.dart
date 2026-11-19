@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdfx/pdfx.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/document_item.dart';
 import '../preview_kind.dart';
 import '../providers/document_controller.dart';
@@ -81,7 +82,12 @@ class _DocumentPreviewScreenState extends ConsumerState<DocumentPreviewScreen> {
         _bytes = bytes;
         _loading = false;
       });
-    } catch (_) {
+    } catch (error, stackTrace) {
+      AppLogger.warning(
+        'Document preview could not be loaded',
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (!mounted) return;
       setState(() {
         _error = 'Could not load this document.';
@@ -99,7 +105,12 @@ class _DocumentPreviewScreenState extends ConsumerState<DocumentPreviewScreen> {
         bytes = await ref
             .read(documentControllerProvider.notifier)
             .downloadDocument(widget.document.filePath);
-      } catch (_) {
+      } catch (error, stackTrace) {
+        AppLogger.warning(
+          'Document download from the preview failed',
+          error: error,
+          stackTrace: stackTrace,
+        );
         if (!mounted) return;
         messenger.showSnackBar(
           const SnackBar(content: Text('Could not download the document')),

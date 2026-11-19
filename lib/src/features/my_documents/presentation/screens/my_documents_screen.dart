@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/document_item.dart';
 import '../providers/document_controller.dart';
 import '../save_document.dart';
@@ -294,7 +295,12 @@ class _DocumentCard extends ConsumerWidget {
                 messenger.showSnackBar(
                   SnackBar(content: Text(saveOutcomeMessage(outcome))),
                 );
-              } catch (_) {
+              } catch (error, stackTrace) {
+                AppLogger.warning(
+                  'Document download failed',
+                  error: error,
+                  stackTrace: stackTrace,
+                );
                 if (!context.mounted) return;
                 messenger.showSnackBar(
                   const SnackBar(

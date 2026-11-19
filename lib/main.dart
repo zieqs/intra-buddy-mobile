@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'src/core/constants/app_constants.dart';
+import 'src/core/utils/app_logger.dart';
 import 'src/app/intra_buddy_app.dart';
 import 'src/features/journey/presentation/services/celebration_audio.dart';
 import 'src/features/logbook/presentation/services/logbook_reminder_service.dart';
@@ -27,8 +28,13 @@ void main() async {
 
   try {
     await LogbookReminderService.instance.init();
-  } catch (_) {
+  } catch (error, stackTrace) {
     // Notifications are unavailable on this platform; the app still works.
+    AppLogger.warning(
+      'Local notifications are unavailable',
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 
   unawaited(CelebrationAudio.instance.prepare());

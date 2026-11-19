@@ -6,6 +6,7 @@ import 'package:timezone/timezone.dart' as tz;
 import '../../../../app/navigation_keys.dart';
 import '../../../../app/notification_navigation.dart';
 import '../../../../app/startup_intent.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../logbook_reminder_planner.dart';
 import '../logbook_reminder_scheduler.dart';
 
@@ -45,8 +46,13 @@ class LogbookReminderService implements LogbookReminderScheduler {
     try {
       final zone = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(tz.getLocation(zone.identifier));
-    } catch (_) {
+    } catch (error, stackTrace) {
       // Fall back to the package default if the platform zone is unavailable.
+      AppLogger.warning(
+        'Could not resolve the device timezone',
+        error: error,
+        stackTrace: stackTrace,
+      );
     }
 
     const settings = InitializationSettings(
@@ -100,8 +106,13 @@ class LogbookReminderService implements LogbookReminderScheduler {
           payload: 'logbook',
         );
       }
-    } catch (_) {
+    } catch (error, stackTrace) {
       // Reminders are best-effort; never break the screen that triggered them.
+      AppLogger.warning(
+        'Could not schedule logbook reminders',
+        error: error,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -119,7 +130,12 @@ class LogbookReminderService implements LogbookReminderScheduler {
         payload: 'logbook',
       );
       return true;
-    } catch (_) {
+    } catch (error, stackTrace) {
+      AppLogger.warning(
+        'Test notification failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
       return false;
     }
   }

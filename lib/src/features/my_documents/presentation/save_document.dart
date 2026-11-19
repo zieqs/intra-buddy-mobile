@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 
+import '../../../core/utils/app_logger.dart';
+
 enum SaveOutcome { saved, cancelled, failed }
 
 String saveOutcomeMessage(SaveOutcome outcome) => switch (outcome) {
@@ -42,7 +44,12 @@ Future<SaveOutcome> saveDocumentToDevice({
 
     final path = await save(fileName, bytes);
     return path == null ? SaveOutcome.cancelled : SaveOutcome.saved;
-  } catch (_) {
+  } catch (error, stackTrace) {
+    AppLogger.warning(
+      'Saving the document to the device failed',
+      error: error,
+      stackTrace: stackTrace,
+    );
     return SaveOutcome.failed;
   }
 }
