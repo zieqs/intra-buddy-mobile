@@ -8,7 +8,7 @@
 |-------|-------|
 | **Name** | `intra_buddy_mobile_v2` |
 | **Repository** | `github.com/zieqs/intra-buddy` |
-| **Version** | `0.1.0+1` |
+| **Version** | `1.0.0+1` |
 | **Description** | Student-facing mobile app for UniKL internship management |
 | **Platform** | Flutter (iOS, Android) |
 | **Primary audience** | UniKL students enrolled in industrial training (INTRA) |
@@ -28,7 +28,7 @@ This is a **two-person team project** with a shared Supabase backend:
 
 **In scope (mobile app):**
 - Student auth (email/password via Supabase Auth)
-- Dashboard with progress overview
+- Journey home with milestone and weekly progress
 - INTRA milestone checklist
 - Job application tracker
 - FAQ-based chatbot assistant
@@ -76,7 +76,8 @@ Both apps share the same Supabase backend (Postgres, Auth, Realtime, Storage).
 | `file_picker` | ^11.0.2 | File picker for document upload |
 | `url_launcher` | ^6.3.1 | Open external links (mailto) |
 | `flutter_dotenv` | ^6.0.1 | Environment variables from `.env` |
-| `google_fonts` | ^6.2.1 | Google Fonts (Inter) |
+| `audioplayers` | ^6.8.1 | Celebration chime |
+| `shared_preferences` | ^2.5.6 | Celebration sound preference |
 | `pdfx` | ^2.11.0 | In-app PDF rendering (native OS engine) |
 | `flutter_local_notifications` | ^22.3.3 | Local logbook reminders |
 | `timezone` / `flutter_timezone` | ^0.11 / ^5.1 | Scheduling in the device's local time |
@@ -91,16 +92,19 @@ Both apps share the same Supabase backend (Postgres, Auth, Realtime, Storage).
 | `riverpod_lint` | ^3.1.3 | Riverpod-specific linting |
 | `json_serializable` | ^6.9.4 | JSON code generation |
 | `mocktail` | ^1.0.4 | Mocking for tests |
+| `fake_async` | ^1.3.3 | Deterministic timers in tests |
+| `flutter_launcher_icons` | ^0.14.4 | Launcher icon generation |
+| `flutter_native_splash` | ^2.4.8 | Native splash generation |
 
 ### Architecture Decisions
 
 - **State management:** Riverpod 3 with manual providers (`Provider`, `AsyncNotifierProvider`, `FutureProvider`, `NotifierProvider`)
-- **Architecture:** Feature-first Clean Architecture with `domain/data/presentation` layers per feature
+- **Architecture:** Feature-first Clean Architecture with `domain/data/presentation` layers per feature. Riverpod controllers orchestrate repository operations directly; there is no separate use-case layer.
 - **Routing:** GoRouter with `StatefulShellRoute.indexedStack` for 4-tab bottom nav persistence
 - **Backend:** Supabase PostgreSQL + Auth + Storage
 - **Auth:** Email/password only (no OAuth)
 - **Chatbot:** Rule-based FAQ matching (no external LLM API)
-- **Theme:** Material 3 light theme, Royal Blue/Teal/Amber palette, Inter font
+- **Theme:** Material 3 light theme, Royal Blue/Sky/Ink palette with an amber accent, Fredoka display + Nunito body type
 
 ---
 
@@ -113,7 +117,6 @@ feature_name/
   domain/
     entities/         Plain Dart classes (no Flutter, no database)
     repositories/     Abstract interfaces defining operations
-    usecases/         Single-purpose business actions (optional)
 
   data/
     datasources/      Actual Supabase queries and API calls
@@ -121,7 +124,7 @@ feature_name/
     repositories/     Implements domain interfaces, maps model ↔ entity
 
   presentation/
-    providers/        Riverpod controllers (AsyncNotifier) with state
+    providers/        Riverpod controllers (AsyncNotifier) that orchestrate the repositories
     screens/          UI widgets (ConsumerWidget / ConsumerStatefulWidget)
 ```
 
@@ -142,19 +145,19 @@ Screen (ConsumerWidget)
 ```
 Auth check (GoRouter redirect)
   ├─ Not logged in → /login or /signup
-  └─ Logged in → / (StatefulShellRoute — 4 tabs + More)
-       ├─ /dashboard     (tab 0 — DashboardHome)
-       ├─ /checklist     (tab 1 — ChecklistScreen)
-       ├─ /jobs          (tab 2 — JobsScreen)
-       └─ /chat          (tab 3 — ChatbotScreen)
-  ── /my-documents  (pushed from More menu)
-  ── /logbook       (pushed from More menu)
-  ── /notifications (pushed from More menu or AppBar bell)
-  ── /profile       (pushed from More menu)
-  ── /settings      (pushed from More menu)
+  ├─ Email confirmation → /email-confirmation
+  └─ Logged in → StatefulShellRoute (4 tabs)
+       ├─ /dashboard  (tab 0 — HomeScreen, the journey)
+       ├─ /logbook    (tab 1 — LogbookScreen)
+       ├─ /jobs       (tab 2 — JobsScreen)
+       └─ /chat       (tab 3 — ChatbotScreen)
+  ── /my-documents  (pushed)
+  ── /notifications (pushed from the bell)
+  ── /profile       (pushed from the avatar)
+  ── /settings      (pushed from Profile)
 ```
 
-Bottom nav has **5 items** (tabs 0–3 + More `Icons.more_horiz`). The More menu opens a modal bottom sheet containing: Weekly Logbook, Notifications, Documents, Profile, Settings, Logout.
+The bottom bar is the custom `BuddyDock` with four tabs: Journey (`/dashboard`), Logbook, Jobs and Buddy (`/chat`). Notifications, documents, profile and settings are pushed screens, not tabs.
 
 ---
 
@@ -171,7 +174,7 @@ lib/
                                      #   StatefulShellRoute + pushed routes
       theme/
         app_colors.dart              # Color palette constants
-        app_typography.dart          # Inter font text theme
+        app_typography.dart          # Fredoka + Nunito text theme
         app_theme.dart               # Material 3 ThemeData with all component
                                      #   styling (cards, buttons, inputs, nav)
 
@@ -187,213 +190,73 @@ lib/
                                      #   validation helpers
       providers/
         auth_state_provider.dart     # authServiceProvider, authStateProvider,
-                                     #   currentUserProvider
+                                     #   currentUserProvider, authUserIdProvider
         dashboard_refresh_provider.dart  # Notifier<int> signal for auto-refresh
+        tab_index_provider.dart      # selected dock tab
+      utils/
+        app_logger.dart              # debug-only warning/error logging seam
+        coordinator_contact.dart     # coordinator email fallback
 
     features/
       auth/
-        data/
-          datasources/
-            auth_remote_datasource.dart
-          models/
-            user_model.dart
-          repositories/
-            auth_repository_impl.dart
-        domain/
-          entities/
-            user.dart
-          repositories/
-            auth_repository.dart
-          usecases/
-            sign_in.dart
-            sign_up.dart
-            sign_out.dart
-            get_current_user.dart
-        presentation/
-          providers/
-            auth_controller.dart     # AuthController (AsyncNotifier<User?>)
-          screens/
-            login_screen.dart
-            signup_screen.dart
+        data/          datasource (Supabase Auth), user model, repository impl
+        domain/        user entity, auth repository contract
+        presentation/  auth controller, login / signup / confirmation screens
+
+      enrollment/
+        data/          enrollment datasource, repository impl
+        domain/        enrollment entity, pickCurrentEnrollment, repository contract
+        presentation/  enrollment gate, providers, semester card
 
       dashboard/
-        presentation/
-          providers/
-            dashboard_controller.dart # DashboardData entity + dashboardProvider
-                                     #   (FutureProvider, watches refresh signal)
-          screens/
-            dashboard_home.dart      # Stat cards + notification badge
-            student_shell.dart       # Shell with AppBar, 5-tab nav, More menu
+        presentation/  student_shell.dart — shell with BuddyTopBar + BuddyDock
+
+      journey/
+        domain/        Journey model, buildJourney, copy helpers (pure Dart)
+        presentation/  journeyProvider, HomeScreen/HomeView, trail chapters and
+                       nodes, current-task card, milestone sheet, celebration
+                       overlay, chime + haptics
 
       checklist/
-        data/
-          datasources/
-            checklist_remote_datasource.dart
-          models/
-            checklist_item_model.dart
-          repositories/
-            checklist_repository_impl.dart
-        domain/
-          entities/
-            checklist_item.dart
-          repositories/
-            checklist_repository.dart
-          usecases/
-            load_checklist.dart
-            toggle_item.dart
-        presentation/
-          providers/
-            checklist_controller.dart # ChecklistController (AsyncNotifier)
-          screens/
-            checklist_screen.dart    # Progress bar + toggle tiles
+        data/          datasource, merger, model, repository impl
+        domain/        checklist item entity, repository contract
+        presentation/  checklist controller (its UI is the journey trail)
 
       jobs/
-        data/
-          datasources/
-            job_remote_datasource.dart
-          models/
-            job_application_model.dart
-          repositories/
-            job_repository_impl.dart
-        domain/
-          entities/
-            job_application.dart
-          repositories/
-            job_repository.dart
-          usecases/
-            load_applications.dart
-            add_application.dart
-            update_application.dart
-            delete_application.dart
-        presentation/
-          providers/
-            job_controller.dart      # JobController (AsyncNotifier)
-          screens/
-            jobs_screen.dart         # List + add/edit bottom sheet + delete
+        data/          datasource, model, repository impl
+        domain/        job application entity, repository contract
+        presentation/  job controller, jobs screen, form and view widgets
 
       my_documents/
-        data/
-          datasources/
-            document_remote_datasource.dart
-            document_storage_path.dart
-          models/
-            document_model.dart
-          repositories/
-            document_repository_impl.dart
-        domain/
-          entities/
-            document_item.dart
-          repositories/
-            document_repository.dart
-          usecases/
-            load_documents.dart
-            upload_document.dart
-            delete_document.dart
-        presentation/
-          providers/
-            document_controller.dart  # DocumentController (AsyncNotifier)
-          screens/
-            my_documents_screen.dart  # List + upload/rename/delete
-            document_preview_screen.dart  # In-app PDF/image preview
+        data/          datasource, storage path helper, model, repository impl
+        domain/        document entity, repository contract
+        presentation/  document controller, list screen, preview screen,
+                       save-to-device helper
 
       logbook/
-        data/
-          datasources/
-            logbook_remote_datasource.dart
-          repositories/
-            logbook_repository_impl.dart
-        domain/
-          entities/
-            logbook_week.dart
-          repositories/
-            logbook_repository.dart
-          usecases/
-            load_weeks.dart
-            toggle_submitted.dart
-        presentation/
-          logbook_week_info.dart        # Date-aware week states
-          logbook_reminder_planner.dart # Reminder schedule (pure)
-          providers/
-            logbook_controller.dart  # LogbookController (AsyncNotifier)
-          screens/
-            logbook_screen.dart      # Week states + confirm/undo
-          services/
-            logbook_reminder_service.dart  # Local notifications
+        data/          datasource, repository impl
+        domain/        logbook week entity, repository contract
+        presentation/  controller, week-state helpers, reminder planner /
+                       scheduler / sync, logbook screen and view
 
       notifications/
-        data/
-          datasources/
-            notification_remote_datasource.dart
-            notification_realtime_datasource.dart
-          models/
-            notification_model.dart
-          repositories/
-            notification_repository_impl.dart
-        domain/
-          entities/
-            app_notification.dart
-          repositories/
-            notification_repository.dart
-          usecases/
-            load_notifications.dart
-            mark_as_read.dart
-            archive_notification.dart
-        presentation/
-          notification_time.dart    # Shared relative time formatting
-          providers/
-            notification_controller.dart  # NotificationController (AsyncNotifier)
-          screens/
-            notification_screen.dart  # Grouped inbox + archive
-          widgets/
-            notification_bell.dart
-            notification_image_strip.dart
-            latest_notification_banner.dart
+        data/          query + realtime datasources, model, repository impl
+        domain/        notification entity, repository contract
+        presentation/  controller, inbox screen, bell, banner, image strip
 
       chatbot/
-        data/
-          datasources/
-            chat_remote_datasource.dart
-          models/
-            chat_session_model.dart
-            chat_message_model.dart
-          repositories/
-            chat_repository_impl.dart
-        domain/
-          entities/
-            chat_session.dart
-            chat_message.dart
-          repositories/
-            chat_repository.dart
-          usecases/
-            load_sessions.dart
-            send_message.dart
-        presentation/
-          providers/
-            chat_controller.dart     # SessionsNotifier + ChatController
-          screens/
-            chatbot_screen.dart      # Message bubbles + drawer + input
+        data/          datasource, models, repository impl
+        domain/        entities, matchFaq (pure matcher), repository contract
+        presentation/  controller, chat screen, bubbles, composer, drawer,
+                       thinking-trace panel
 
       profile/
-        data/
-          datasources/
-            profile_remote_datasource.dart
-          repositories/
-            profile_repository_impl.dart
-        domain/
-          entities/
-            student_profile.dart
-          repositories/
-            profile_repository.dart
-        presentation/
-          providers/
-            profile_controller.dart  # ProfileController (AsyncNotifier)
-          screens/
-            profile_screen.dart      # View/edit with initials avatar
+        data/          datasource, repository impl
+        domain/        student profile entity, repository contract
+        presentation/  profile controller and screen
 
       settings/
-        presentation/
-          screens/
-            settings_screen.dart     # App version + sign out with confirmation
+        presentation/  settings screen (version, sound toggle, sign out)
 ```
 
 ---
@@ -434,7 +297,7 @@ User role is stored in `public.users.role` with check constraint: `student`, `co
 | Sign in | `AuthService.signInWithEmail()` → `supabase.auth.signInWithPassword()` |
 | Sign up | `AuthService.signUpStudent()` → `supabase.auth.signUp()` with `user_metadata` containing role + student_id + phone |
 | Sign out | `AuthService.signOut()` |
-| Session check | `authService.currentUser` (from `Supabase.instance.client.auth.currentSession`) |
+| Session check | `authService.currentUser` for routing; datasources call `requireUserId()`, which clears a stale session and throws `SessionExpiredException` |
 | Auth stream | `authService.authStateChanges` → Riverpod `authStateProvider` (StreamProvider) |
 
 ### Onboarding & semester assignment
@@ -467,36 +330,37 @@ Trying to access /dashboard while logged out → redirected to /login
 | Path | Screen | Access | Notes |
 |------|--------|--------|-------|
 | `/login` | `LoginScreen` | Public | GoRouter redirect target if not logged in |
-| `/signup` | `SignupScreen` | Public | GoRouter route |
-| `/dashboard` | `DashboardHome` | Auth | Tab 0 in StatefulShellRoute |
-| `/checklist` | `ChecklistScreen` | Auth | Tab 1 in StatefulShellRoute |
-| `/jobs` | `JobsScreen` | Auth | Tab 2 in StatefulShellRoute |
-| `/chat` | `ChatbotScreen` | Auth | Tab 3 in StatefulShellRoute |
-| `/my-documents` | `MyDocumentsScreen` | Auth | Pushed from More menu (not a tab) |
-| `/notifications` | `NotificationScreen` | Auth | Pushed from AppBar bell or More menu |
-| `/logbook` | `LogbookScreen` | Auth | Pushed from More menu |
-| `/profile` | `ProfileScreen` | Auth | Pushed from More menu |
-| `/settings` | `SettingsScreen` | Auth | Pushed from More menu |
+| `/signup` | `SignupScreen` | Public | Registration (blocked when no semester is open) |
+| `/email-confirmation` | `EmailConfirmationScreen` | Public | After a successful signup |
+| `/dashboard` | `HomeScreen` | Auth | Tab 0 — the journey trail |
+| `/logbook` | `LogbookScreen` | Auth | Tab 1 — weekly logbook |
+| `/jobs` | `JobsScreen` | Auth | Tab 2 — job applications |
+| `/chat` | `ChatbotScreen` | Auth | Tab 3 — FAQ assistant |
+| `/my-documents` | `MyDocumentsScreen` | Auth | Pushed from Profile |
+| `/notifications` | `NotificationScreen` | Auth | Pushed from the bell |
+| `/profile` | `ProfileScreen` | Auth | Pushed from the avatar |
+| `/settings` | `SettingsScreen` | Auth | Pushed from Profile |
 
-Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bottom sheet with: Weekly Logbook, Notifications, Documents, Profile, Settings, and Logout.
+The bottom bar is the custom `BuddyDock`: four tabs (Journey, Logbook, Jobs, Buddy) plus pushed screens. There is no separate checklist route; milestones live on the journey trail.
 
 ---
 
 ## 10. Feature Deep Dives
 
-### 10.1 Dashboard
+### 10.1 Journey (Home)
 
-- **Screen:** `DashboardHome` (ConsumerWidget with RefreshIndicator)
-- **Provider:** `dashboardProvider` — `FutureProvider<DashboardData>` aggregating data from 4 Supabase tables in parallel, plus the student's semester dates
-- **Tables:** `student_checklists`, `job_applications`, `digital_wallet_items`, `weekly_logbook_tracking`, `semesters` (via `student_semesters`)
-- **UI:** Welcome greeting, a **Latest notification** banner (newest non-archived item with unread count, tap → Notifications; explicit empty, loading and error states), then an **INTRA Journey card** with two stages:
-  - *Preparation* — milestone progress, tap through to Checklist
-  - *Internship* — date-driven 14-week strip (submitted / current / missed / upcoming), `Week N of 14`, counts and next deadline, tap through to Logbook
-  - Below it, Applications and Documents stat tiles
-- **Journey logic:** `computeJourneyProgress` in `presentation/journey_progress.dart` — pure, unit tested; a week is not missed on its due date
-- **Auto-refresh:** Watches `dashboardRefreshProvider` — a `Notifier<int>` bumped by every feature controller after mutations (toggle checklist, add job, upload document, submit logbook, etc.)
-- **States:** loading spinner, error card with retry, data with journey card + 2 stat tiles
-- **Each stage/card is tappable** — navigates to the relevant feature
+- **Screen:** `HomeScreen` (ConsumerStatefulWidget) rendering `HomeView`, with `BuddyTopBar` (brand, streak pill, notification bell, profile avatar)
+- **Provider:** `journeyProvider` — `FutureProvider<Journey>`, watching `authUserIdProvider` and `dashboardRefreshProvider`
+- **Data:** the student's checklist, logbook weeks and current semester, merged by `buildJourney` in `domain/build_journey.dart`
+- **Structure:** three chapters — `before` (preparation milestones), `during` (the 14 logbook weeks) and `after` — with node states `done`, `current`, `open`, `missed` and `locked`
+- **UI:**
+  - Eyebrow (`WEEK N OF 14`, `GETTING READY`, `WRAPPING UP`), headline and streak copy from `domain/journey_copy.dart`
+  - `CurrentTaskCard` for the next action, with a label derived from the node (mark a milestone done, open a week, review)
+  - Chaptered trail of `TrailChapter` / `TrailNode` cards; tapping a milestone opens the sheet, tapping a week opens Logbook
+  - `CelebrationOverlay` with an optional chime and haptic when a node is completed (sound preference lives in Settings)
+- **Side effects:** each journey load re-syncs the local logbook reminders
+- **Auto-refresh:** watches `dashboardRefreshProvider`, which feature controllers bump after mutations
+- **States:** loading, error with retry, empty ("Your journey starts here"), data with pull-to-refresh
 
 ### 10.2 Checklist
 
@@ -527,15 +391,17 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
 - **Providers:**
   - `sessionsProvider` — `AsyncNotifier<List<ChatSession>>`
   - `messagesProvider(sessionId)` — `FutureProvider.family<List<ChatMessage>, String>`
-  - `chatControllerProvider` — `Provider<ChatController>` (helper class with `sendMessage`)
+  - `chatControllerProvider` — `NotifierProvider<ChatController, ChatProcessingState>` with `idle → thinking → streaming` phases
 - **Tables:** `chat_sessions`, `chat_messages`, `faqs`
-- **FAQ matching:** Rule-based scoring (no external LLM):
-  - +10 if user message contains FAQ title
+- **Sending:** the user message is written first, the FAQ lookup runs, then the answer streams in after a short "thinking" pause and is persisted when streaming completes. `stopStreaming()` finishes an in-flight answer; a second send is ignored while one is processing.
+- **FAQ matching:** `matchFaq` in `domain/match_faq.dart` (pure, typed with `FaqEntry`):
+  - +10 if the message contains the FAQ question
   - +5 per matching keyword
-  - +1 per word overlap (words > 3 chars)
-  - Best match returned as assistant response; fallback message if no match
-- **UI:** Message bubbles with role-based styling, end drawer for session history, text input bar with send button
-- **Auto-initialization:** Loads latest session on app start, or creates a new one
+  - +1 per shared word longer than three characters
+  - Best match becomes the assistant reply; a coordinator fallback message is used when nothing matches
+- **UI:** Message bubbles with role-based styling, a chat-history drawer, thinking-trace panel, stop button, an empty state with the brand mark and example prompts
+- **Coverage:** 16 tests across the matcher, repository and controller
+- **Auto-initialization:** Loads the latest session on app start, or creates a new one
 
 ### 10.5 My Documents
 
@@ -577,7 +443,7 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
   - **overdue** (red; late weeks stay submittable)
   - **upcoming** (grey, locked — future weeks cannot be marked)
 - **Submission:** explicit `Mark` with a confirmation explaining the app does not upload the logbook; optimistic update with rollback on failure
-- **Reminders:** local notifications scheduled for 09:00 the day before each unsubmitted `week_end_date` (`flutter_local_notifications` + `timezone`). Rescheduled whenever dashboard data loads (app open, tab switch, mutations) and cancelled when a week is submitted. Tapping opens Logbook. Android uses `POST_NOTIFICATIONS` plus the boot receiver; core library desugaring is enabled for the plugin.
+- **Reminders:** local notifications scheduled for 09:00 the day before each unsubmitted `week_end_date` (`flutter_local_notifications` + `timezone`). Rescheduled whenever the journey or logbook loads (app open, tab switch, mutations) and cancelled when a week is submitted. Tapping opens Logbook. Android uses `POST_NOTIFICATIONS` plus the boot receiver; core library desugaring is enabled for the plugin.
 - **States:** loading, error, empty, data
 
 ### 10.8 Profile
@@ -592,9 +458,9 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
 ### 10.9 Settings
 
 - **Screen:** `SettingsScreen` (ConsumerWidget)
-- **Provider:** Uses `authControllerProvider` for sign out
-- **UI:** List with app version, sign out with confirmation dialog
-- **Actions:** Sign out clears session and redirects to `/login`
+- **Providers:** `authControllerProvider` for sign out, `celebrationSoundEnabledProvider` for the chime preference
+- **UI:** App version (`1.0.0+1`), celebration sound toggle, sign out with confirmation, and a debug-only "send test notification" action (`kDebugMode` only)
+- **Actions:** Sign out clears the session and the router redirects to `/login`
 
 ---
 
@@ -606,17 +472,24 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
 | `authServiceProvider` | `Provider` | `AuthService` | — |
 | `authStateProvider` | `StreamProvider` | `Stream<AuthState>` | — |
 | `currentUserProvider` | `Provider` | `User?` | — |
+| `authUserIdProvider` | `Provider` | `String?` | — |
+| `currentTabIndexProvider` | `NotifierProvider` | `int` | `setIndex(index)` |
 | `appRouterProvider` | `Provider` | `GoRouter` | — |
 | `dashboardRefreshProvider` | `NotifierProvider` | `int` | `trigger()` (bumps counter) |
-| `dashboardProvider` | `FutureProvider` | `DashboardData` | — (watches refresh signal) |
+| `journeyProvider` | `FutureProvider` | `Journey` | — (watches refresh + auth user) |
+| `currentEnrollmentProvider` | `FutureProvider` | `Enrollment?` | — |
+| `openSemesterProvider` | `FutureProvider` | `Enrollment?` | — |
+| `enrollmentRepositoryProvider` | `Provider` | `EnrollmentRepository` | — |
 | `checklistControllerProvider` | `AsyncNotifierProvider` | `List<ChecklistItem>` | `toggleItem(id, bool)` |
 | `jobControllerProvider` | `AsyncNotifierProvider` | `List<JobApplication>` | `add/update/delete()` |
 | `documentControllerProvider` | `AsyncNotifierProvider` | `List<DocumentItem>` | `upload/delete()` |
 | `logbookControllerProvider` | `AsyncNotifierProvider` | `List<LogbookWeek>` | `toggleSubmitted(id, bool)` |
-| `notificationControllerProvider` | `AsyncNotifierProvider` | `List<AppNotification>` | `markAsRead(id)`, `deleteNotification(id)` |
+| `notificationControllerProvider` | `AsyncNotifierProvider` | `List<AppNotification>` | `markAsRead(id)`, `markAllAsRead()`, `archiveNotification(id)`, `archiveReadNotifications()` |
+| `unreadNotificationCountProvider` | `Provider` | `int` | — |
+| `notificationRealtimeProvider` | `Provider` | `NotificationRealtimeSource` | `dispose()` |
 | `sessionsProvider` | `AsyncNotifierProvider` | `List<ChatSession>` | `findOrCreateSession()` |
 | `messagesProvider(sessionId)` | `FutureProvider.family` | `List<ChatMessage>` | — |
-| `chatControllerProvider` | `Provider` | `ChatController` | `sendMessage(sessionId, content)` |
+| `chatControllerProvider` | `NotifierProvider` | `ChatProcessingState` | `sendMessage()`, `stopStreaming()`, `completeStreaming()` |
 | `profileControllerProvider` | `AsyncNotifierProvider` | `StudentProfile` | `updateProfile(name, phone)` |
 | `authControllerProvider` | `AsyncNotifierProvider` | `User?` | `signIn/signUp/signOut` |
 | `checklistRepositoryProvider` | `Provider` | `ChecklistRepository` | — |
@@ -627,8 +500,12 @@ Bottom nav has **5 items** (4 tabs + More icon). The More icon opens a modal bot
 | `chatRepositoryProvider` | `Provider` | `ChatRepository` | — |
 | `profileRepositoryProvider` | `Provider` | `ProfileRepository` | — |
 | `authRepositoryProvider` | `Provider` | `AuthRepository` | — |
+| `celebrationSoundEnabledProvider` | `AsyncNotifierProvider` | `bool` | `setEnabled(bool)` |
+| `celebrationAudioProvider` | `Provider` | `CelebrationAudio` | — |
+| `celebrationFeedbackProvider` | `Provider` | `CelebrationFeedback` | — |
+| `logbookReminderSchedulerProvider` | `Provider` | `LogbookReminderScheduler` | `reschedule(weeks)` |
 
-All providers are defined manually (no Riverpod code generation). Repository providers are `Provider<T>` singletons. Feature controllers are `AsyncNotifierProvider`. The dashboard uses `FutureProvider` with a refresh signal.
+All providers are defined manually (no Riverpod code generation). Repository providers are `Provider<T>` singletons. Feature controllers are `AsyncNotifierProvider`; the journey and enrollment reads are `FutureProvider`s. Mutations bump `dashboardRefreshProvider`, which the journey watches so home stays current.
 
 ---
 
@@ -849,33 +726,34 @@ The app uses **Material 3** with a custom light theme.
 
 | Token | Hex | Usage |
 |-------|-----|-------|
-| Primary | `#1D4ED8` | AppBar, FilledButton, active nav |
-| Primary Container | `#DBEAFE` | Active chip backgrounds, selection |
-| Secondary | `#0D9488` | Checkboxes, success states, FAB |
-| Secondary Container | `#CCFBF1` | Chip backgrounds |
-| Tertiary / Accent | `#F59E0B` | Milestone highlights, badges |
-| Tertiary Container | `#FEF3C7` | Badge backgrounds |
-| Background | `#F8FAFC` | Scaffold background |
+| Page | `#F4F8FF` | Scaffold background |
 | Surface | `#FFFFFF` | Cards, inputs, sheets |
-| On Surface | `#1E293B` | Primary text |
-| Muted Text | `#64748B` | Secondary text |
-| Error | `#EF4444` | Error states |
-| Border | `#E2E8F0` | Dividers, input borders |
+| Ice | `#E7F0FF` | Soft fills, inactive chips |
+| Blue | `#2563EB` | Primary actions, active nav, links |
+| Blue deep | `#1D4ED8` | Pressed/strong blue |
+| Sky | `#60A5FA` | Secondary accents |
+| Ink | `#0F2A4A` | Primary text |
+| Muted | `#5C6F86` | Secondary text (4.84:1 on page) |
+| Line | `#DCE8FF` | Dividers, card borders |
+| Sun | `#FFC53D` | Milestone highlights, streak flame |
+| Alert | `#E5484D` | Errors, overdue states |
 
 ### Typography
 
-- **Font:** Inter (Google Fonts, via `google_fonts` package)
-- **Scale:** 32pt → 12pt across 8 text styles, all Inter with varying weight
+- **Display:** Fredoka (600 weight) for headlines, section titles and the wordmark
+- **Body / UI:** Nunito (400–800) for labels, body copy and buttons
+- Both families are bundled in `assets/fonts` (no `google_fonts` dependency)
 
 ### Notable Widgets
 
 | Component | Styling |
 |-----------|---------|
-| Cards | `surface` color, 16px radius, elevation 1, subtle shadow |
-| Buttons | Primary `#1D4ED8` with white text, 12px radius |
-| Inputs | Outlined border, `surface` fill, 12px radius |
-| Bottom nav | Material 3 NavigationBar, 5 items + indicator |
-| AppBar | Surface color, no elevation, centered title |
+| Cards | White surface, 20px radius, 1.5px `line` border, soft shadow |
+| Buttons | Primary blue, 14px radius, Fredoka/Nunito weight contrast |
+| Inputs | Outlined `line` border on white, 14px radius |
+| Bottom nav | Custom floating `BuddyDock` card: 4 tabs (Journey / Logbook / Jobs / Buddy), route icons, 10.5px labels, 48dp minimum target |
+| Shell header | `BuddyTopBar`: uppercase 12px Fredoka eyebrow, streak pill, bell, avatar |
+| Pushed screens | Standard `AppBar` with an 18px Fredoka title |
 
 ---
 
@@ -897,43 +775,48 @@ The app uses **Material 3** with a custom light theme.
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Auth (login/signup) | Complete | 3-step signup, student validation, confirmation screen, mapped errors |
-| Dashboard | Complete | Latest-notification banner (empty/loading/error) + INTRA journey card |
+| Journey (home) | Complete | Chaptered trail (milestones + 14 weeks), next-task card, streak copy, celebration overlay |
+| Enrollment gate | Complete | Resolves the student's current semester; blocks the app with a pending state when none exists |
 | Checklist | Complete | Batched load/insert, optimistic toggle |
 | Job Applications | Complete | CRUD with statuses and notes; saves awaited with error feedback |
 | My Documents | Complete | Gallery/file upload, in-app preview, download, rename, delete |
 | Weekly Logbook | Complete | Date-aware states, confirm/undo, rollback, local deadline reminders |
 | Notifications | Complete | Personal + broadcast fan-out with images, archive retention, realtime, badge |
-| Chatbot | Complete | Rule-based FAQ matching, session history drawer |
+| Chatbot | Complete | Rule-based FAQ matching, streaming answer, session history |
 | Profile | Complete | View/edit name and phone, validation |
-| Settings | Complete | App version, sign out, debug-only notification test |
+| Settings | Complete | App version, celebration sound toggle, sign out, debug-only notification test |
+| Branding | Complete | Launcher icon + adaptive icon, splash screens, app name, in-app mark |
 
-### Demo data
+### Demo data (verified 19 Nov 2026)
 
-- Active semester: **`INTRA Session 1 2026/2027`**, 1 Nov 2026 – 7 Feb 2027.
-- 14 logbook weeks, ending 4 Oct 2026 → 3 Jan 2027; week 5 currently in progress.
-- Demo account: `hazieq.azrul@s.unikl.edu.my`.
-- Demo broadcasts 36/37/38; inbox has 6 unread items (broadcasts with images + personal notes).
+- Active semester: **`INTRA Session 1 2026/2027`**, 1 Nov 2026 – 7 Feb 2027 (`is_active = true`, `registration_open = false`).
+- 14 logbook weeks ending 8 Nov 2026 → 7 Feb 2027; weeks 1–2 submitted, week 3 in progress.
+- Demo account: `hazieq.azrul@s.unikl.edu.my` (email confirmed, enrolled in the active semester).
+- 10 checklist items (4 completed), 4 job applications, 2 documents, 6 FAQs.
+- 12 notifications, **0 unread** — mark 2–3 unread before a demo so the badge and "archive read" flow are visible.
 - Migration backups: `_demo_backup_semesters_20261029`, `_demo_backup_weeks_20261029` — drop once no longer needed.
 
 ### Known Issues
 
-1. **`authService.currentUser!` null risk:** the bang operator throws inside repository calls when the session expires, so screens show error states instead of redirecting to login. A guarded `requireUserId()` helper is the planned fix.
-2. **No remote push yet:** Android FCM is deferred; iOS push additionally requires a paid Apple Developer Program account (APNs entitlement). Students currently get local logbook reminders and in-app realtime updates only.
-3. **Reminders reschedule only when data loads:** the device plan refreshes when the dashboard/logbook loads. If semester dates change in the database, reminders correct on the next app open.
-4. **No unarchive UI:** archived notifications are retained for INTRA records but students can only see active ones.
-5. **No autoDispose on providers:** providers live for the app session. Acceptable at this size; notifications reload on auth changes.
-6. **Direct Supabase access in `AuthService`:** makes auth harder to mock in tests.
-7. **Inconsistent controller patterns:** jobs/documents use `fold()` + `invalidateSelf()`, checklist/logbook use optimistic state; both work but aren't uniform.
-8. **`ChatController` stores a manual `Ref`:** less idiomatic than an `AsyncNotifier`.
-9. **Release APK is debug-signed:** fine for sideloading, rejected by Google Play; needs an upload keystore before publishing.
-10. **Test coverage is partial:** 145 tests cover auth, notifications (controller/repository/widgets), jobs, profile, checklist merge, logbook states/reminders, documents, dashboard journey/card and router stability. Chat, the dashboard provider and most screens have no tests.
+1. **No remote push yet:** Android FCM is deferred; iOS push additionally requires a paid Apple Developer Program account (APNs entitlement). Students get local logbook reminders and in-app realtime updates only.
+2. **Reminders reschedule only when data loads:** the device plan refreshes when the journey/logbook loads. If semester dates change in the database, reminders correct on the next app open.
+3. **No unarchive UI:** archived notifications are retained for INTRA records but students can only see active ones.
+4. **No autoDispose on providers:** providers live for the app session. Acceptable at this size; user-scoped providers invalidate on auth changes.
+5. **Inconsistent controller patterns:** jobs/documents use `fold()` + `invalidateSelf()`, checklist/logbook use optimistic state. Both work but aren't uniform.
+6. **Release APK is debug-signed:** fine for sideloading, rejected by Google Play; needs an upload keystore before publishing.
+7. **No integration/E2E tests:** 279 unit and widget tests cover the features, but router + Supabase + storage are never exercised together.
+8. **Migration history drift:** seven applied migrations have no file in the repo and seven filenames use different timestamps, so `supabase db push` is unsafe until a baseline is adopted. See `supabase/README.md`.
+9. **Two deny-all tables:** `coordinator_student_assignments` and `student_management_audit` have RLS enabled with no policies, so only the service role can read them. Decide with the web dashboard whether that is intended.
+10. **`.env` is bundled as a Flutter asset:** only the publishable key lives there, but never add a server secret; it would ship inside the APK.
+11. **AuthService injection is partial:** the class accepts an injected client for tests, but providers still construct it from the Supabase singleton.
 
 ### Next steps
 
 1. **Android FCM push** (free): Firebase project, `device_tokens` table, `send-push` Edge Function, DB webhooks for `broadcast_messages` and personal `notifications`.
 2. **iOS push:** only after an Apple Developer Program account is available.
-3. **Session guard:** replace `currentUser!` across the seven datasources.
+3. **Database baseline:** `supabase db dump` + `migration repair` per `supabase/README.md`; then reconcile the two RLS-less tables and enable leaked-password protection.
 4. **Retention job:** delete archived notifications beyond the retention window when it becomes relevant.
+5. **Integration tests:** cover sign-in → journey → logbook submit → notification read against a real backend.
 
 ---
 
