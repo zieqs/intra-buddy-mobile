@@ -7,7 +7,7 @@ class NotificationRemoteDataSource {
 
   NotificationRemoteDataSource(this.authService, this.supabase);
 
-  String get _userId => authService.currentUser!.id;
+  String get _userId => authService.requireUserId();
 
   Future<List<Map<String, dynamic>>> loadNotifications() async {
     return supabase

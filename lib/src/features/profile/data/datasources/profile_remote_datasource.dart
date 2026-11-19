@@ -7,7 +7,7 @@ class ProfileRemoteDataSource {
 
   ProfileRemoteDataSource(this.authService, this.supabase);
 
-  String get _userId => authService.currentUser!.id;
+  String get _userId => authService.requireUserId();
 
   Future<Map<String, dynamic>> loadProfile() async {
     final response = await supabase

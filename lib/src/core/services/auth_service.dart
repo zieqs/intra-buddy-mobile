@@ -1,10 +1,33 @@
+import 'dart:async';
+
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import '../constants/app_constants.dart';
+import '../errors/failures.dart';
 
 class AuthService {
-  supabase.SupabaseClient get _client => supabase.Supabase.instance.client;
+  AuthService({supabase.SupabaseClient? client}) : _clientOverride = client;
+
+  final supabase.SupabaseClient? _clientOverride;
+
+  supabase.SupabaseClient get _client =>
+      _clientOverride ?? supabase.Supabase.instance.client;
 
   supabase.User? get currentUser => _client.auth.currentUser;
+
+  /// The signed-in account id, or a [SessionExpiredException] when the session
+  /// has gone away.
+  ///
+  /// Datasources use this instead of `currentUser!.id`: a missing session is a
+  /// normal runtime state (expired refresh token, revoked account), not a bug.
+  /// Clearing the stale local session lets the router redirect to sign-in.
+  String requireUserId() {
+    final id = _client.auth.currentUser?.id;
+    if (id == null) {
+      unawaited(_client.auth.signOut().catchError((_) {}));
+      throw const SessionExpiredException();
+    }
+    return id;
+  }
 
   Stream<supabase.AuthState> get authStateChanges =>
       _client.auth.onAuthStateChange;
