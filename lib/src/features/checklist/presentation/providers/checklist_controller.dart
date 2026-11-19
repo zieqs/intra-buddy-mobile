@@ -7,12 +7,14 @@ import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/providers/auth_state_provider.dart';
 import '../../../../core/providers/dashboard_refresh_provider.dart';
 import '../../../../core/providers/tab_index_provider.dart';
+import '../../../enrollment/presentation/providers/enrollment_provider.dart';
 
 final checklistRepositoryProvider = Provider<ChecklistRepository>((ref) {
   final authService = ref.watch(authServiceProvider);
   final supabase = ref.watch(supabaseClientProvider);
+  final enrollmentRepository = ref.watch(enrollmentRepositoryProvider);
   return ChecklistRepositoryImpl(
-    ChecklistRemoteDataSource(authService, supabase),
+    ChecklistRemoteDataSource(authService, supabase, enrollmentRepository),
   );
 });
 

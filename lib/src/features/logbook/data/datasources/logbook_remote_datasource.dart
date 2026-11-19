@@ -1,15 +1,20 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/services/auth_service.dart';
-import '../../../enrollment/data/enrollment_remote_datasource.dart';
 import '../../../enrollment/domain/entities/enrollment.dart';
+import '../../../enrollment/domain/repositories/enrollment_repository.dart';
 
 class LogbookRemoteDataSource {
   final AuthService authService;
   final SupabaseClient supabase;
+  final EnrollmentRepository enrollmentRepository;
 
-  LogbookRemoteDataSource(this.authService, this.supabase);
+  LogbookRemoteDataSource(
+    this.authService,
+    this.supabase,
+    this.enrollmentRepository,
+  );
 
-  String get _userId => authService.currentUser!.id;
+  String get _userId => authService.requireUserId();
 
   Future<List<Map<String, dynamic>>> loadWeeks() async {
     final semester = await _currentSemester();
@@ -53,8 +58,9 @@ class LogbookRemoteDataSource {
         .order('week_number', ascending: true);
   }
 
-  Future<Enrollment?> _currentSemester() {
-    return resolveCurrentEnrollment(supabase, _userId);
+  Future<Enrollment?> _currentSemester() async {
+    final result = await enrollmentRepository.currentFor(_userId);
+    return result.fold((failure) => throw failure, (enrollment) => enrollment);
   }
 
   Future<void> toggleSubmitted(int id, bool submitted) async {

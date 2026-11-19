@@ -61,12 +61,3 @@ class EnrollmentRemoteDataSource {
     return enrollmentFromRow(Map<String, dynamic>.from(response.first as Map));
   }
 }
-
-/// Convenience wrapper used by the features that only need the semester id or
-/// dates.
-Future<Enrollment?> resolveCurrentEnrollment(
-  SupabaseClient supabase,
-  String userId,
-) {
-  return EnrollmentRemoteDataSource(supabase).fetchCurrentEnrollment(userId);
-}

@@ -1,14 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/providers/auth_state_provider.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../../../core/providers/dashboard_refresh_provider.dart';
 import '../../../checklist/presentation/providers/checklist_controller.dart';
-import '../../../enrollment/data/enrollment_remote_datasource.dart';
 import '../../../enrollment/domain/entities/enrollment.dart';
+import '../../../enrollment/domain/repositories/enrollment_repository.dart';
+import '../../../enrollment/presentation/providers/enrollment_provider.dart';
 import '../../../logbook/presentation/logbook_reminder_sync.dart';
 import '../../../logbook/presentation/providers/logbook_controller.dart';
 import '../../domain/build_journey.dart';
@@ -30,11 +30,11 @@ final journeyProvider = FutureProvider<Journey>((ref) async {
   final userId = auth.currentUser?.id;
   if (userId == null) return Journey.empty();
 
-  final supabase = ref.watch(supabaseClientProvider);
   final checklistRepo = ref.watch(checklistRepositoryProvider);
   final logbookRepo = ref.watch(logbookRepositoryProvider);
+  final enrollmentRepo = ref.watch(enrollmentRepositoryProvider);
 
-  final semester = await _loadSemester(supabase, userId);
+  final semester = await _loadSemester(enrollmentRepo, userId);
   final checklistResult = await checklistRepo.loadChecklist();
   final weeksResult = await logbookRepo.loadExistingWeeks();
 
@@ -65,15 +65,17 @@ final journeyProvider = FutureProvider<Journey>((ref) async {
 });
 
 Future<SemesterInfo> _loadSemester(
-  SupabaseClient supabase,
+  EnrollmentRepository repository,
   String userId,
 ) async {
-  try {
-    final enrollment = await resolveCurrentEnrollment(supabase, userId);
-    return _toSemesterInfo(enrollment);
-  } catch (_) {
+  final result = await repository.currentFor(userId);
+  return result.fold((failure) {
+    AppLogger.warning(
+      'Could not load semester info for the journey',
+      error: failure,
+    );
     return const SemesterInfo();
-  }
+  }, _toSemesterInfo);
 }
 
 SemesterInfo _toSemesterInfo(Enrollment? enrollment) {

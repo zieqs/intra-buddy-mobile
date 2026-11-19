@@ -6,11 +6,15 @@ import '../../data/repositories/logbook_repository_impl.dart';
 import '../../../../core/network/supabase_client_provider.dart';
 import '../../../../core/providers/auth_state_provider.dart';
 import '../../../../core/providers/dashboard_refresh_provider.dart';
+import '../../../enrollment/presentation/providers/enrollment_provider.dart';
 
 final logbookRepositoryProvider = Provider<LogbookRepository>((ref) {
   final authService = ref.watch(authServiceProvider);
   final supabase = ref.watch(supabaseClientProvider);
-  return LogbookRepositoryImpl(LogbookRemoteDataSource(authService, supabase));
+  final enrollmentRepository = ref.watch(enrollmentRepositoryProvider);
+  return LogbookRepositoryImpl(
+    LogbookRemoteDataSource(authService, supabase, enrollmentRepository),
+  );
 });
 
 final logbookControllerProvider =

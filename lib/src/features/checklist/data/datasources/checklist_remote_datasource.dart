@@ -1,18 +1,27 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/services/auth_service.dart';
-import '../../../enrollment/data/enrollment_remote_datasource.dart';
+import '../../../enrollment/domain/repositories/enrollment_repository.dart';
 import 'checklist_merger.dart';
 
 class ChecklistRemoteDataSource {
   final AuthService authService;
   final SupabaseClient supabase;
+  final EnrollmentRepository enrollmentRepository;
 
-  ChecklistRemoteDataSource(this.authService, this.supabase);
+  ChecklistRemoteDataSource(
+    this.authService,
+    this.supabase,
+    this.enrollmentRepository,
+  );
 
-  String get _userId => authService.currentUser!.id;
+  String get _userId => authService.requireUserId();
 
   Future<List<Map<String, dynamic>>> loadChecklist() async {
-    final enrollment = await resolveCurrentEnrollment(supabase, _userId);
+    final enrollmentResult = await enrollmentRepository.currentFor(_userId);
+    final enrollment = enrollmentResult.fold(
+      (failure) => throw failure,
+      (enrollment) => enrollment,
+    );
     final semesterId = enrollment?.semesterId;
     if (semesterId == null) return [];
 
@@ -67,9 +76,7 @@ class ChecklistRemoteDataSource {
         .from('student_checklists')
         .update({
           'is_completed': completed,
-          'completed_at': completed
-              ? DateTime.now().toIso8601String()
-              : null,
+          'completed_at': completed ? DateTime.now().toIso8601String() : null,
         })
         .eq('id', checklistId);
   }
