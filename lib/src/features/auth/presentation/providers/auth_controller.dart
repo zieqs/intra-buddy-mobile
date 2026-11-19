@@ -49,7 +49,11 @@ class AuthController extends AsyncNotifier<User?> {
     }
     if (message.contains('connect') ||
         message.contains('network') ||
-        message.contains('internet')) {
+        message.contains('internet') ||
+        message.contains('socket') ||
+        message.contains('host lookup') ||
+        message.contains('failed host') ||
+        message.contains('timeout')) {
       return 'Unable to connect. Please check your internet and try again.';
     }
     if (message.contains('database error')) {

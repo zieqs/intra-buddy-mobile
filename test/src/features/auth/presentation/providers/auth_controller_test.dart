@@ -44,6 +44,17 @@ void main() {
       );
     });
 
+    test('maps a socket failure to a connectivity message', () {
+      final result = AuthController.mapAuthError(
+        "SocketException: Failed host lookup: 'project.supabase.co' "
+        '(OS Error: No address associated with hostname, errno = 7)',
+      );
+      expect(
+        result,
+        'Unable to connect. Please check your internet and try again.',
+      );
+    });
+
     test('passes through unknown errors', () {
       final result = AuthController.mapAuthError('Some unknown error');
       expect(result, 'Something went wrong. Please try again.');
