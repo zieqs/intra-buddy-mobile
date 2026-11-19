@@ -13,15 +13,15 @@ class BuddyDock extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onSelected;
 
-  static const labels = ['Home', 'Logbook', 'Jobs', 'INTRA'];
+  static const labels = ['Journey', 'Logbook', 'Jobs', 'Buddy'];
   static const _icons = [
-    Icons.home_outlined,
+    Icons.route_outlined,
     Icons.event_note_outlined,
     Icons.work_outline_rounded,
     Icons.chat_bubble_outline_rounded,
   ];
   static const _activeIcons = [
-    Icons.home_rounded,
+    Icons.route_rounded,
     Icons.event_note_rounded,
     Icons.work_rounded,
     Icons.chat_bubble_rounded,
@@ -90,14 +90,18 @@ class _DockItem extends StatelessWidget {
             children: [
               Icon(active ? activeIcon : icon, size: 20, color: color),
               const SizedBox(height: 2),
-              Text(
-                label,
-                style: TextStyle(
-                  fontFamily: 'Nunito',
-                  fontSize: 8.5,
-                  letterSpacing: 0.4,
-                  fontWeight: active ? FontWeight.w800 : FontWeight.w700,
-                  color: color,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontFamily: 'Nunito',
+                    fontSize: 10.5,
+                    letterSpacing: 0.3,
+                    fontWeight: active ? FontWeight.w800 : FontWeight.w700,
+                    color: color,
+                  ),
                 ),
               ),
             ],

@@ -48,34 +48,18 @@ class BuddyTopBar extends StatelessWidget {
                 tooltip: 'Back',
                 icon: const Icon(Icons.arrow_back_rounded, size: 20),
                 color: context.ink,
-                constraints: const BoxConstraints(
-                  minWidth: 48,
-                  minHeight: 48,
-                ),
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
               ),
             ),
           Expanded(
-            child: Row(
-              children: [
-                Flexible(
-                  child: Text(
-                    first,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontFamily: 'Fredoka',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1.2,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                ),
-                if (rest.isNotEmpty) ...[
-                  const SizedBox(width: 4),
+            child: Semantics(
+              label: brand,
+              excludeSemantics: true,
+              child: Row(
+                children: [
                   Flexible(
                     child: Text(
-                      rest,
+                      first.toUpperCase(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -83,12 +67,29 @@ class BuddyTopBar extends StatelessWidget {
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 1.2,
-                        color: AppColors.blue,
+                        color: AppColors.ink,
                       ),
                     ),
                   ),
+                  if (rest.isNotEmpty) ...[
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        rest.toUpperCase(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontFamily: 'Fredoka',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.2,
+                          color: AppColors.blue,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
           const SizedBox(width: 4),

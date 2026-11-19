@@ -114,7 +114,7 @@ class _ChatbotScreenState extends ConsumerState<ChatbotScreen> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        title: const Text(''),
+        title: const Text('Buddy'),
         leading: IconButton(
           icon: const Icon(Icons.dehaze),
           tooltip: 'Chat History',

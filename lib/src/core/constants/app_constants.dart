@@ -1,6 +1,7 @@
 class AppConstants {
   AppConstants._();
 
+  static const String appName = 'INTRA Buddy';
   static const String supabaseUrlKey = 'SUPABASE_URL';
   static const String supabaseAnonKeyKey = 'SUPABASE_ANON_KEY';
   static const String coordinatorContactKey = 'COORDINATOR_CONTACT';

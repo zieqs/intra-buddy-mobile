@@ -74,7 +74,7 @@ class _HomeViewState extends State<HomeView> {
     final journey = widget.journey;
     final reference = widget.now ?? DateTime.now();
     final topBar = BuddyTopBar(
-      brand: 'INTRA BUDDY',
+      brand: 'Journey',
       streak: journey.streak,
       userName: widget.userName,
       bell: widget.bell,

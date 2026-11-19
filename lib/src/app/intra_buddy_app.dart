@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/constants/app_constants.dart';
 import 'navigation_keys.dart';
 import 'notification_navigation.dart';
 import 'startup_intent.dart';
@@ -21,7 +22,7 @@ class IntraBuddyApp extends ConsumerWidget {
     }
 
     return MaterialApp.router(
-      title: 'INTRA Buddy',
+      title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,

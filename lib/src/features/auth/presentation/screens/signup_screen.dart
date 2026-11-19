@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/ui/brand_mark.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/providers/auth_state_provider.dart';
@@ -104,7 +105,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.school, size: 48, color: AppColors.primary),
+                const Center(child: BrandMark(size: 84)),
                 const SizedBox(height: 12),
                 Text(
                   'Create Account',

@@ -14,7 +14,7 @@ void main() {
         theme: AppTheme.light,
         home: Scaffold(
           body: BuddyTopBar(
-            brand: 'INTRA BUDDY',
+            brand: 'INTRA Buddy',
             streak: 6,
             userName: 'Aisyah',
             bell: const SizedBox(),
@@ -26,6 +26,7 @@ void main() {
 
     expect(find.text('INTRA'), findsOneWidget);
     expect(find.text('BUDDY'), findsOneWidget);
+    expect(find.bySemanticsLabel('INTRA Buddy'), findsOneWidget);
     expect(find.text('6'), findsOneWidget);
     expect(find.bySemanticsLabel('Profile'), findsOneWidget);
     await tester.tap(find.bySemanticsLabel('Profile'));
@@ -62,7 +63,7 @@ void main() {
         theme: AppTheme.light,
         home: Scaffold(
           body: BuddyTopBar(
-            brand: 'INTRA BUDDY',
+            brand: 'INTRA Buddy',
             streak: 6,
             userName: 'Aisyah',
             bell: const SizedBox(),

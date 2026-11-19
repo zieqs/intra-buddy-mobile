@@ -36,7 +36,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final journey = _lastJourney;
 
     final topBar = BuddyTopBar(
-      brand: 'INTRA BUDDY',
+      brand: 'Journey',
       streak: journey?.streak ?? 0,
       userName: userName,
       bell: const NotificationBell(),

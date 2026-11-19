@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/constants/app_constants.dart';
 
 class ChatMessageBubble extends StatelessWidget {
   final Widget child;
@@ -72,7 +73,7 @@ class ChatMessageBubble extends StatelessWidget {
               const CircleAvatar(radius: 9, backgroundColor: AppColors.primary),
               const SizedBox(width: 6),
               Text(
-                'INTRA Buddy',
+                AppConstants.appName,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,

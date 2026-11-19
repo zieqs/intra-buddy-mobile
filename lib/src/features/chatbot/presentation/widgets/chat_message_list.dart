@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/ui/brand_mark.dart';
 import '../../domain/entities/chat_message.dart';
 import '../providers/chat_controller.dart';
 import 'chat_message_bubble.dart';
@@ -286,15 +287,7 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircleAvatar(
-              radius: 20,
-              backgroundColor: AppColors.primary,
-              child: Icon(
-                Icons.auto_awesome,
-                size: 22,
-                color: AppColors.onPrimary,
-              ),
-            ),
+            const BrandMark(size: 84),
             const SizedBox(height: 16),
             Text(
               'How can I help today?',

@@ -2,7 +2,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <application
-        android:label="intra_buddy_mobile_v2"
+        android:label="INTRA Buddy"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

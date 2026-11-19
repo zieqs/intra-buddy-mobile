@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/ui/brand_mark.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/providers/auth_state_provider.dart';
 import '../providers/auth_controller.dart';
 
@@ -62,10 +64,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.school, size: 64, color: AppColors.primary),
+                  const Center(child: BrandMark(size: 104)),
                   const SizedBox(height: 16),
                   Text(
-                    'INTRA Buddy',
+                    AppConstants.appName,
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineLarge,
                   ),

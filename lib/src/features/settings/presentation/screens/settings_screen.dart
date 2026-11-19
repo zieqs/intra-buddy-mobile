@@ -62,7 +62,7 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                   title: const Text('App Version'),
                   trailing: Text(
-                    '0.1.0+1',
+                    '1.0.0+1',
                     style: TextStyle(color: context.muted),
                   ),
                 ),

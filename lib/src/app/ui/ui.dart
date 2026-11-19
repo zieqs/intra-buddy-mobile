@@ -1,3 +1,4 @@
+export 'brand_mark.dart';
 export 'buddy_dock.dart';
 export 'buddy_scaffold.dart';
 export 'buddy_top_bar.dart';

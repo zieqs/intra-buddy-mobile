@@ -18,10 +18,10 @@ void main() {
       ),
     );
 
-    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Journey'), findsOneWidget);
     expect(find.text('Logbook'), findsOneWidget);
     expect(find.text('Jobs'), findsOneWidget);
-    expect(find.text('INTRA'), findsOneWidget);
+    expect(find.text('Buddy'), findsOneWidget);
     await tester.tap(find.text('Jobs'));
     expect(selected, 2);
   });
@@ -32,15 +32,41 @@ void main() {
         theme: AppTheme.light,
         home: Scaffold(
           body: const Text('Page'),
-          bottomNavigationBar: BuddyDock(
-            currentIndex: 0,
-            onSelected: (_) {},
-          ),
+          bottomNavigationBar: BuddyDock(currentIndex: 0, onSelected: (_) {}),
         ),
       ),
     );
 
     expect(tester.getSize(find.byType(BuddyDock)).height, lessThan(100));
     expect(find.text('Page'), findsOneWidget);
+  });
+
+  testWidgets('labels stay inside a phone-width dock at 2x text scale', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: MediaQuery(
+          data: const MediaQueryData(
+            size: Size(320, 640),
+            textScaler: TextScaler.linear(2),
+          ),
+          child: Scaffold(
+            body: Align(
+              alignment: Alignment.bottomCenter,
+              child: SizedBox(
+                width: 320,
+                child: BuddyDock(currentIndex: 0, onSelected: (_) {}),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Journey'), findsOneWidget);
+    expect(find.text('Logbook'), findsOneWidget);
   });
 }
