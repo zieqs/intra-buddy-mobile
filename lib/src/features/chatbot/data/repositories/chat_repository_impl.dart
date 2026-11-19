@@ -103,8 +103,8 @@ class ChatRepositoryImpl implements ChatRepository {
           id: 0,
           sessionId: '',
           role: 'assistant',
-          content: match['answer'] as String,
-          matchedFaqId: match['id'] as int?,
+          content: match.answer,
+          matchedFaqId: match.id,
           createdAt: DateTime.now(),
         ),
       );

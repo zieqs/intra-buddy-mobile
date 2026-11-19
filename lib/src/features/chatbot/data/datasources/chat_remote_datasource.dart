@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/services/auth_service.dart';
+import '../../domain/match_faq.dart';
 
 class ChatRemoteDataSource {
   final AuthService authService;
@@ -7,7 +8,7 @@ class ChatRemoteDataSource {
 
   ChatRemoteDataSource(this.authService, this.supabase);
 
-  String get _userId => authService.currentUser!.id;
+  String get _userId => authService.requireUserId();
 
   Future<List<Map<String, dynamic>>> loadSessions() async {
     return supabase
@@ -77,57 +78,28 @@ class ChatRemoteDataSource {
     return response;
   }
 
-  Future<Map<String, dynamic>?> findAnswer(String userMessage) async {
+  Future<FaqEntry?> findAnswer(String userMessage) async {
     final faqs = await supabase
         .from('faqs')
         .select('id, question, answer, keywords')
         .eq('is_published', true);
 
-    Map<String, dynamic>? bestMatch;
-    var bestScore = 0;
-
-    final userWords = userMessage
-        .toLowerCase()
-        .split(RegExp(r'\s+'))
-        .where((w) => w.length > 3)
-        .toSet();
-
-    for (final faq in faqs) {
-      var score = 0;
-      final title = (faq['question'] as String).toLowerCase();
-
-      if (userMessage.toLowerCase().contains(title)) {
-        score += 10;
-      }
-
-      final keywords =
-          (faq['keywords'] as List<dynamic>?)
-              ?.map((e) => e.toString().toLowerCase())
-              .toList() ??
-          [];
-
-      for (final keyword in keywords) {
-        if (userMessage.toLowerCase().contains(keyword)) {
-          score += 5;
-        }
-      }
-
-      final faqWords = title
-          .split(RegExp(r'\s+'))
-          .where((w) => w.length > 3)
-          .toSet();
-      final overlap = userWords.intersection(faqWords);
-      score += overlap.length;
-
-      if (score > bestScore) {
-        bestScore = score;
-        bestMatch = faq;
-      }
-    }
-
-    if (bestMatch != null && bestScore > 0) {
-      return bestMatch;
-    }
-    return null;
+    return matchFaq(
+      userMessage,
+      faqs
+          .map(
+            (faq) => FaqEntry(
+              id: faq['id'] as int,
+              question: faq['question'] as String,
+              answer: faq['answer'] as String,
+              keywords:
+                  (faq['keywords'] as List<dynamic>?)
+                      ?.map((keyword) => keyword.toString())
+                      .toList() ??
+                  const [],
+            ),
+          )
+          .toList(),
+    );
   }
 }
